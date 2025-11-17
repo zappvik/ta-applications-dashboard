@@ -30,10 +30,6 @@ export const authOptions: AuthOptions = {
 
 
 
-        // 1. Construct the "Ghost Email"
-
-        // The user types "admin", we send "admin@dashboard.local"
-
         const email = `${credentials.username}@dashboard.local`
 
 
@@ -76,7 +72,7 @@ export const authOptions: AuthOptions = {
 
           email: data.user.email,
 
-          name: credentials.username, // Return the clean username
+          name: credentials.username,
 
         }
 

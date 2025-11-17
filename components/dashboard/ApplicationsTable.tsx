@@ -218,8 +218,6 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
     <div className="space-y-6">
 
-      {/* --- Controls --- */}
-
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-start">
 
         <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto">
@@ -301,8 +299,6 @@ export default function ApplicationsTable({ applications, initialSelections = ne
       )}
 
 
-
-      {/* --- Table --- */}
 
       <div className="overflow-x-auto rounded-lg shadow-md border dark:border-gray-700">
 
@@ -425,8 +421,6 @@ export default function ApplicationsTable({ applications, initialSelections = ne
                       {isFirst && (
 
                         <>
-
-                          {/* CENTERED REASON & INTERNSHIP */}
 
                           <td rowSpan={rowSpan} className="px-4 py-5 border-r dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[300px] text-center text-gray-700 dark:text-gray-300">
 

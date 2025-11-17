@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-// Function to fetch a single application
 async function getApplication(id: string) {
   const { data, error } = await supabase
     .from('applications')
@@ -28,7 +27,6 @@ export default async function ApplicationDetailsPage({
     notFound()
   }
 
-  // Helper to format subjects (handling jsonb)
   const formatSubjects = (subjects: any) => {
     if (!subjects) return 'None selected'
     if (Array.isArray(subjects)) return subjects.join(', ')
@@ -38,7 +36,6 @@ export default async function ApplicationDetailsPage({
 
   return (
     <div>
-      {/* Back Button */}
       <Link
         href="/dashboard/applications"
         className="inline-flex items-center px-4 py-2 mb-6 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
@@ -58,7 +55,6 @@ export default async function ApplicationDetailsPage({
 
         <div className="px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200 dark:sm:divide-gray-700">
-            {/* Student Name */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Student Name
@@ -68,7 +64,6 @@ export default async function ApplicationDetailsPage({
               </dd>
             </div>
 
-            {/* Roll Number */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50 dark:bg-gray-900/50">
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Roll Number
@@ -78,7 +73,6 @@ export default async function ApplicationDetailsPage({
               </dd>
             </div>
 
-            {/* Email */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Email
@@ -88,7 +82,6 @@ export default async function ApplicationDetailsPage({
               </dd>
             </div>
 
-            {/* Internship */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50 dark:bg-gray-900/50">
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Internship Details
@@ -98,7 +91,6 @@ export default async function ApplicationDetailsPage({
               </dd>
             </div>
 
-            {/* Selected Subjects */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Selected Subjects
@@ -108,7 +100,6 @@ export default async function ApplicationDetailsPage({
               </dd>
             </div>
 
-            {/* Reason */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50 dark:bg-gray-900/50">
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Reason

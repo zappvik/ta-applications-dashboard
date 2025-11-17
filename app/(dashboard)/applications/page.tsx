@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 
 import ApplicationsTable from '@/components/dashboard/ApplicationsTable'
 
-import InstructionsBanner from '@/components/dashboard/InstructionsBanner' // Import
+import InstructionsBanner from '@/components/dashboard/InstructionsBanner'
 
 
 
@@ -87,8 +87,6 @@ export default async function ApplicationsPage() {
       </p>
 
 
-
-      {/* Added Instructions Banner */}
 
       <InstructionsBanner />
 

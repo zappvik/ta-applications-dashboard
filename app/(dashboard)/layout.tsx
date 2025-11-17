@@ -20,13 +20,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden">
 
-      {/* Sidebar */}
-
       <Sidebar />
 
 
-
-      {/* Main Content Area */}
 
       <div className="flex-1 flex flex-col overflow-hidden">
 

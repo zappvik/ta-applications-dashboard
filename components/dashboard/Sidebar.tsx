@@ -32,13 +32,9 @@ export default function Sidebar() {
 
     <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-20">
 
-      {/* Header - Height locked to h-16 */}
-
       <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
 
         <div className="flex items-center gap-3 overflow-hidden">
-
-          {/* Icon */}
 
           <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
 
@@ -51,8 +47,6 @@ export default function Sidebar() {
             </svg>
 
           </div>
-
-          {/* Text Stack */}
 
           <div className="flex flex-col min-w-0 justify-center">
 
@@ -75,8 +69,6 @@ export default function Sidebar() {
       </div>
 
       
-
-      {/* Navigation */}
 
       <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
 

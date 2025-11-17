@@ -76,7 +76,7 @@ export default function LoginForm() {
 
         <h1 className="text-2xl font-bold text-center">
 
-          Winter TA applications dashboard
+          Winter TA Applications Dashboard
 
         </h1>
 
@@ -114,7 +114,7 @@ export default function LoginForm() {
 
               required
 
-              className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white"
+              className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white capitalize"
 
               value={username}
 

@@ -2,10 +2,6 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   turbopack: {
-    /**
-     * Explicitly set the Turbopack root so Next.js does not try to infer it
-     * from parent directories that might also contain lockfiles.
-     */
     root: __dirname,
   },
   async rewrites() {

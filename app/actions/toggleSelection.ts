@@ -24,8 +24,6 @@ export async function toggleSelection(applicationId: string) {
 
 
 
-  // Use Service Role to modify User Metadata
-
   const supabaseAdmin = createClient(
 
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,8 +36,6 @@ export async function toggleSelection(applicationId: string) {
 
 
 
-  // 1. Get current user data
-
   const { data: { user }, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(userId)
 
   
@@ -48,33 +44,19 @@ export async function toggleSelection(applicationId: string) {
 
 
 
-  // 2. Get existing selections (or empty array)
-
   const currentSelections: string[] = user.user_metadata?.selections || []
 
   let newSelections = []
 
 
 
-  // 3. Toggle logic
-
   if (currentSelections.includes(applicationId)) {
-
-    // Remove
-
     newSelections = currentSelections.filter(id => id !== applicationId)
-
   } else {
-
-    // Add
-
     newSelections = [...currentSelections, applicationId]
-
   }
 
 
-
-  // 4. Save back to metadata
 
   const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
 

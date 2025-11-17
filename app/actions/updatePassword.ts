@@ -12,8 +12,6 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function updatePassword(password: string) {
 
-  // 1. Verify the user is logged in via NextAuth
-
   const session = await getServerSession(authOptions)
 
   
@@ -29,8 +27,6 @@ export async function updatePassword(password: string) {
   const userId = (session.user as any).id
 
 
-
-  // 2. Use Service Role Key to bypass RLS and update user
 
   const supabaseAdmin = createClient(
 

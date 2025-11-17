@@ -20,8 +20,6 @@ export default async function ChosenPage() {
 
 
 
-  // Use Service Role to fetch User Metadata
-
   const supabaseAdmin = createClient(
 
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,8 +31,6 @@ export default async function ChosenPage() {
   )
 
 
-
-  // 1. Get Selections from Metadata
 
   const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId)
 
@@ -63,8 +59,6 @@ export default async function ChosenPage() {
   }
 
 
-
-  // 2. Fetch Application Data
 
   const { data: applications } = await supabaseAdmin
 

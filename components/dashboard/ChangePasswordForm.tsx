@@ -40,8 +40,6 @@ export default function ChangePasswordForm() {
 
 
 
-    // Call the Server Action
-
     const result = await updatePassword(newPass)
 
 
