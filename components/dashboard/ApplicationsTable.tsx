@@ -23,16 +23,24 @@ const parseSubject = (subj: any) => {
   return { name, grade }
 }
 
+// --- FILTER DATA (Correct) ---
 const SUBJECT_MAPPING: Record<string, string[]> = {
-  'First Year': ['23CSE111', '23CSE113'],
-  'Second Year': ['23CSE211', '23CSE212', '23CSE213', '23CSE214'],
-  'Third Year': ['23CSE311', '23CSE312', '23CSE313', '23CSE314'],
-  'Third Year Free Electives': ['23CSE475', '23CSE461', '23CSE465', '23CSE363', '23CSE473', '23CSE452', '23CSE334', '23CSE365']
+  'First Year': ['23CSE111 - Object Oriented Programming', '23CSE113 - User Interface Design'],
+  'Second Year': ['23CSE211 - Design and Analysis of Algorithms', '23CSE212 - Principles of Functional Languages', '23CSE213 - Computer Organization and Architecture', '23CSE214 - Operating Systems'],
+  'Third Year': ['23CSE311 - Software Engineering', '23CSE312 - Distributed Systems', '23CSE313 - Foundations of Cyber Security', '23CSE314 - Compiler Design'],
+  'Third Year Free Electives': ['23CSE475 - Generative AI', '23CSE461 - Full Stack Frameworks', '23CSE465 - Mobile Application Development', '23CSE363 - Cloud Computing', '23CSE473 - Neural Networks and Deep Learning', '23CSE452 - Business Analytics', '23CSE334 - Cyber Forensics and Malware', '23CSE365 - Internet of Things']
 }
+
+const BATCH_MAPPING = [
+  { label: 'All Batches', value: 'All' },
+  { label: 'Final Year (2022)', value: '22' },
+  { label: 'Pre-Final Year (2023)', value: '23' },
+];
 
 export default function ApplicationsTable({ applications, initialSelections = new Set(), takenSelections = new Set() }: { applications: Application[], initialSelections?: Set<string>, takenSelections?: Set<string> }) {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const [selectedBatch, setSelectedBatch] = useState('All')
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' })
   
   const [optimisticSelections, addOptimisticSelection] = useOptimistic(
@@ -47,15 +55,11 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
   const handleToggle = async (id: string, subject: string) => {
     const compositeKey = `${id}::${subject}`
-    
     startTransition(() => {
       addOptimisticSelection(compositeKey)
     })
-
     const result = await toggleSelection(id, subject)
-    if (result?.error) {
-      alert(result.error) 
-    }
+    if (result?.error) alert(result.error)
   }
 
   const handleCategoryChange = (category: string) => { setSelectedCategory(category); setSelectedSubjects([]) }
@@ -64,70 +68,65 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
   const availableSubjects = selectedCategory === 'All' ? Object.values(SUBJECT_MAPPING).flat() : SUBJECT_MAPPING[selectedCategory]
 
+  // --- FILTER LOGIC ---
   const filteredApplications = applications.filter((app) => {
+    let batchMatch = true
+    if (selectedBatch !== 'All') {
+      const yearPrefix = selectedBatch
+      batchMatch = app.roll_number.startsWith(`CSE${yearPrefix}`)
+    }
+
     let categoryMatch = true
     if (selectedCategory !== 'All') {
       const categoryCodes = SUBJECT_MAPPING[selectedCategory].map(s => s.split(' - ')[0])
-      if (!app.selected_subjects || !Array.isArray(app.selected_subjects)) {
-        categoryMatch = false
-      } else {
-        categoryMatch = app.selected_subjects.some(subjObj => {
+      if (!app.selected_subjects || !Array.isArray(app.selected_subjects)) categoryMatch = false
+      else categoryMatch = app.selected_subjects.some(subjObj => {
           const { name } = parseSubject(subjObj)
           return categoryCodes.some(code => String(name).includes(code))
         })
-      }
     }
 
     let subjectMatch = true
     if (selectedSubjects.length > 0) {
-      if (!app.selected_subjects || !Array.isArray(app.selected_subjects)) {
-        subjectMatch = false
-      } else {
-        subjectMatch = selectedSubjects.some(filterSubject => {
+      if (!app.selected_subjects || !Array.isArray(app.selected_subjects)) subjectMatch = false
+      else subjectMatch = selectedSubjects.some(filterSubject => {
           const filterCode = filterSubject.split(' - ')[0]
           return app.selected_subjects?.some(subjObj => {
              const { name } = parseSubject(subjObj)
              return String(name).includes(filterCode)
           })
         })
-      }
     }
-    return categoryMatch && subjectMatch
+    return batchMatch && categoryMatch && subjectMatch
   })
 
+  // --- SORT LOGIC ---
   const sortedApplications = [...filteredApplications].sort((a, b) => {
     if (sortConfig.key === 'grade') {
       const GRADE_VALUES: Record<string, number> = { 'O': 10, 'A+': 9.5, 'A': 9, 'B+': 8, 'B': 7, 'C': 6, 'P': 5, 'F': 0, '-': -1 }
       const getGradeScore = (grade: string) => GRADE_VALUES[grade.trim().toUpperCase()] ?? -1
-      
       const maxGradeA = Array.isArray(a.selected_subjects) ? Math.max(...a.selected_subjects.map(s => getGradeScore(parseSubject(s).grade))) : -1
       const maxGradeB = Array.isArray(b.selected_subjects) ? Math.max(...b.selected_subjects.map(s => getGradeScore(parseSubject(s).grade))) : -1
-
       return sortConfig.direction === 'desc' ? maxGradeB - maxGradeA : maxGradeA - maxGradeB
     }
-    
     if (sortConfig.key === 'roll_number') {
       return sortConfig.direction === 'asc' ? a.roll_number.localeCompare(b.roll_number) : b.roll_number.localeCompare(a.roll_number)
     }
-
     return sortConfig.direction === 'asc' ? new Date(a.created_at).getTime() - new Date(b.created_at).getTime() : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
 
   return (
     <div className="space-y-6">
-      {/* --- Controls (Omitted) --- */}
+      {/* --- Controls --- */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-end">
-        
-        {/* Filters (Left) */}
         <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto items-end">
-          <div className="w-full md:w-56">
+          <div className="w-full md:w-48">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Batch</label>
-            <select value={selectedCategory} onChange={(e) => handleCategoryChange(e.target.value)} className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500">
-              <option value="All">All Years</option>
-              {Object.keys(SUBJECT_MAPPING).map((category) => <option key={category} value={category}>{category}</option>)}
+            <select value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)} className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500">
+              {BATCH_MAPPING.map((batch) => <option key={batch.value} value={batch.value}>{batch.label}</option>)}
             </select>
           </div>
-          <div className="w-full md:w-56">
+          <div className="w-full md:w-48">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter by Year</label>
             <select value={selectedCategory} onChange={(e) => handleCategoryChange(e.target.value)} className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500">
               <option value="All">All Years</option>
@@ -142,8 +141,6 @@ export default function ApplicationsTable({ applications, initialSelections = ne
             </select>
           </div>
         </div>
-
-        {/* Sort & Download (Right) */}
         <div className="w-full md:w-auto flex items-end gap-3">
           <div className="w-full md:w-48">
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Sort By</label>
@@ -156,14 +153,10 @@ export default function ApplicationsTable({ applications, initialSelections = ne
                 <option value="roll_number-desc">Roll Number (Desc)</option>
               </select>
           </div>
-          
-          <div className="flex-shrink-0">
-            <DownloadCSVButton applications={sortedApplications} />
-          </div>
+          <div className="flex-shrink-0"><DownloadCSVButton applications={sortedApplications} /></div>
         </div>
       </div>
 
-      {/* Active Tags (Omitted) */}
       {selectedSubjects.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedSubjects.map(subject => (
@@ -175,7 +168,7 @@ export default function ApplicationsTable({ applications, initialSelections = ne
         </div>
       )}
 
-      {/* --- Table --- */}
+      {/* --- TABLE (FIXED LAYOUT) --- */}
       <div className="overflow-x-auto rounded-lg shadow-md border dark:border-gray-700">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400 border-collapse min-w-[1200px]">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 border-b dark:border-gray-600">
@@ -200,7 +193,6 @@ export default function ApplicationsTable({ applications, initialSelections = ne
                   const { name, grade } = parseSubject(subj);
                   const isFirst = index === 0;
                   const rowClass = "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b dark:border-gray-700 text-sm"
-
                   const compositeKey = `${app.id}::${name}`
                   const isSelected = optimisticSelections.has(compositeKey)
 
@@ -220,15 +212,18 @@ export default function ApplicationsTable({ applications, initialSelections = ne
                         </>
                       )}
                       
+                      {/* SUBJECT COLUMN (Star Button Inside) */}
                       <td className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle font-medium text-gray-800 dark:text-gray-200 break-words max-w-[200px] text-center">
-                        <button 
-                          onClick={() => handleToggle(app.id, name)} 
-                          className={`text-lg leading-none focus:outline-none transition-transform active:scale-90 mr-2 ${isSelected ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-300 hover:text-gray-400'}`}
-                          title={isSelected ? "Unselect" : "Select"}
-                        >
-                          ★
-                        </button>
-                        <span>{name}</span>
+                        <div className="flex items-center justify-center gap-2">
+                            <button 
+                              onClick={() => handleToggle(app.id, name)} 
+                              className={`text-lg leading-none focus:outline-none transition-transform active:scale-90 ${isSelected ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-300 hover:text-gray-400'}`}
+                              title={isSelected ? "Unselect" : "Select"}
+                            >
+                              ★
+                            </button>
+                            <span>{name}</span>
+                        </div>
                       </td>
 
                       <td className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-center font-mono font-bold text-sm">
