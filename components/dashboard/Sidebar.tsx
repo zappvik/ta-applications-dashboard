@@ -44,22 +44,9 @@ export default function Sidebar() {
 
           </svg>
 
-          
-
-          <div className="flex flex-col justify-center">
-
-            <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight leading-none">
-
-              Winter <span className="text-blue-600 dark:text-blue-500">TA</span>
-
-            </span>
-
-            <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 tracking-widest uppercase mt-0.5">
-
-              Admin Portal
-
-            </span>
-
+          <div className="flex items-center text-sm font-bold text-gray-900 dark:text-white tracking-tight uppercase whitespace-nowrap leading-none">
+            <span className="text-blue-600 dark:text-blue-500 mr-1">TA</span>
+            <span>ADMIN PORTAL</span>
           </div>
 
         </div>

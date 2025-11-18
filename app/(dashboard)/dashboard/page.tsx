@@ -67,23 +67,15 @@ async function getDashboardData() {
   let chosenCount = 0
 
   if (userId) {
-
-    const { count: selectionCount, error: selectionError } = await supabaseAdmin
-
+    const { data: selectionRows, error: selectionError } = await supabaseAdmin
       .from('selections')
-
-      .select('*', { count: 'exact', head: true })
-
+      .select('application_id')
       .eq('user_id', userId)
 
-    
-
-    if (!selectionError && selectionCount !== null) {
-
-      chosenCount = selectionCount
-
+    if (!selectionError && selectionRows) {
+      const uniqueStudents = new Set(selectionRows.map((row) => row.application_id))
+      chosenCount = uniqueStudents.size
     }
-
   }
 
 

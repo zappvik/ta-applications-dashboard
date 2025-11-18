@@ -24,8 +24,7 @@ export default function InstructionsBanner() {
           <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
             <ul className="list-disc pl-5 space-y-1">
               <li>Use the <strong>Filters</strong> above to narrow down students by Year or Subject.</li>
-              <li>Click the <strong>Star (★)</strong> icon to shortlist a student for that specific subject (your selection).</li>
-              <li>The <strong>Red Lock (🔒)</strong> shows another professor has already shortlisted that subject and it’s reserved.</li>
+              <li>Click the <strong>Star (★)</strong> icon to shortlist a student for that specific subject.</li>
               <li>View your personal shortlist in the <strong>Shortlisted</strong> tab in the sidebar.</li>
             </ul>
           </div>
