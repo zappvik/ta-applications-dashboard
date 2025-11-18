@@ -1,5 +1,3 @@
-import { supabase } from '@/lib/supabase'
-
 import Link from 'next/link'
 
 import { getServerSession } from 'next-auth'
@@ -10,6 +8,14 @@ import { createClient } from '@supabase/supabase-js'
 
 
 
+// --- CRITICAL FIX: Disable Caching ---
+
+export const dynamic = 'force-dynamic' 
+
+// -------------------------------------
+
+
+
 async function getDashboardData() {
 
   const session = await getServerSession(authOptions)
@@ -17,6 +23,8 @@ async function getDashboardData() {
   const userId = (session?.user as any)?.id
 
 
+
+  // 1. Admin Client (Service Role)
 
   const supabaseAdmin = createClient(
 
@@ -30,7 +38,9 @@ async function getDashboardData() {
 
 
 
-  const { count, error: countError } = await supabase
+  // 2. Get Total Count
+
+  const { count, error: countError } = await supabaseAdmin
 
     .from('applications')
 
@@ -38,7 +48,9 @@ async function getDashboardData() {
 
 
 
-  const { data: recentApps, error: listError } = await supabase
+  // 3. Get Recent 5 Applications
+
+  const { data: recentApps, error: listError } = await supabaseAdmin
 
     .from('applications')
 
@@ -50,13 +62,27 @@ async function getDashboardData() {
 
 
 
+  // 4. Get Chosen Count (From Selections Table)
+
   let chosenCount = 0
 
   if (userId) {
 
-    const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId)
+    const { count: selectionCount, error: selectionError } = await supabaseAdmin
 
-    chosenCount = user?.user_metadata?.selections?.length || 0
+      .from('selections')
+
+      .select('*', { count: 'exact', head: true })
+
+      .eq('user_id', userId)
+
+    
+
+    if (!selectionError && selectionCount !== null) {
+
+      chosenCount = selectionCount
+
+    }
 
   }
 
@@ -102,7 +128,13 @@ export default async function DashboardPage() {
 
 
 
+      {/* --- Stats Cards --- */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        
+
+        {/* Total Applications */}
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-blue-500">
 
@@ -121,6 +153,8 @@ export default async function DashboardPage() {
         </div>
 
 
+
+        {/* Shortlisted (Real Data) */}
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-green-500">
 
@@ -144,6 +178,8 @@ export default async function DashboardPage() {
 
 
 
+      {/* --- Recent Applications Table --- */}
+
       <div className="mt-8">
 
         <div className="flex justify-between items-center mb-4">
@@ -154,7 +190,13 @@ export default async function DashboardPage() {
 
           </h2>
 
-          <Link href="/dashboard/applications" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+          <Link 
+
+            href="/dashboard/applications" 
+
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+
+          >
 
             View All &rarr;
 
@@ -190,11 +232,23 @@ export default async function DashboardPage() {
 
                   <tr key={app.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{app.student_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{app.email}</td>
+                      {app.student_name}
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">{new Date(app.created_at).toLocaleDateString()}</td>
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+
+                      {app.email}
+
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">
+
+                      {new Date(app.created_at).toLocaleDateString()}
+
+                    </td>
 
                   </tr>
 
@@ -202,7 +256,15 @@ export default async function DashboardPage() {
 
               ) : (
 
-                <tr><td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No applications yet.</td></tr>
+                <tr>
+
+                  <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
+
+                    No applications yet.
+
+                  </td>
+
+                </tr>
 
               )}
 

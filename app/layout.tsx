@@ -6,6 +6,8 @@ import Providers from './providers'
 
 import ThemeToggle from '@/components/ThemeToggle'
 
+import Watermark from '@/components/Watermark'
+
 
 
 export const metadata: Metadata = {
@@ -32,13 +34,15 @@ export default function RootLayout({
 
     <html lang="en" suppressHydrationWarning>
 
-      <body className="antialiased bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
+      <body className="antialiased bg-white text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-500 ease-in-out">
 
         <Providers>
 
           {children}
 
           <ThemeToggle />
+
+          <Watermark />
 
         </Providers>
 
