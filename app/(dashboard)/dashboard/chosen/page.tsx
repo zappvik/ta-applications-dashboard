@@ -16,11 +16,11 @@ export default async function ChosenPage() {
 
 
 
-  if (!userId) return <div className="p-6">Please log in to view shortlisted candidates.</div>
+  if (!userId) return <div className="p-6">Please log in.</div>
 
 
 
-  const supabaseAdmin = createClient(
+  const supabase = createClient(
 
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
 
@@ -32,13 +32,17 @@ export default async function ChosenPage() {
 
 
 
-  const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId)
+  const { data: selections } = await supabase
 
-  const chosenIds: string[] = user?.user_metadata?.selections || []
+    .from('selections')
+
+    .select('application_id, subject')
+
+    .eq('user_id', userId)
 
 
 
-  if (chosenIds.length === 0) {
+  if (!selections || selections.length === 0) {
 
     return (
 
@@ -48,7 +52,7 @@ export default async function ChosenPage() {
 
         <div className="bg-white dark:bg-gray-800 p-10 rounded-lg shadow text-center text-gray-500">
 
-          You haven't shortlisted any candidates yet. Go to the Applications page to select some.
+          No candidates shortlisted yet.
 
         </div>
 
@@ -60,13 +64,19 @@ export default async function ChosenPage() {
 
 
 
-  const { data: applications } = await supabaseAdmin
+  const appIds = Array.from(new Set(selections.map(s => s.application_id)))
+
+  const selectionSet = new Set(selections.map(s => `${s.application_id}::${s.subject}`))
+
+
+
+  const { data: applications } = await supabase
 
     .from('applications')
 
     .select('*')
 
-    .in('id', chosenIds)
+    .in('id', appIds)
 
     .order('created_at', { ascending: false })
 
@@ -82,7 +92,7 @@ export default async function ChosenPage() {
 
         applications={applications || []} 
 
-        initialSelections={new Set(chosenIds)} 
+        initialSelections={selectionSet} 
 
       />
 
@@ -91,4 +101,3 @@ export default async function ChosenPage() {
   )
 
 }
-

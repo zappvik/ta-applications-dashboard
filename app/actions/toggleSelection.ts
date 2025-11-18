@@ -12,7 +12,7 @@ import { revalidatePath } from 'next/cache'
 
 
 
-export async function toggleSelection(applicationId: string) {
+export async function toggleSelection(applicationId: string, subject: string) {
 
   const session = await getServerSession(authOptions)
 
@@ -24,7 +24,7 @@ export async function toggleSelection(applicationId: string) {
 
 
 
-  const supabaseAdmin = createClient(
+  const supabase = createClient(
 
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
 
@@ -36,37 +36,45 @@ export async function toggleSelection(applicationId: string) {
 
 
 
-  const { data: { user }, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(userId)
+  const { data: existing } = await supabase
 
-  
+    .from('selections')
 
-  if (fetchError || !user) return { error: 'User not found' }
+    .select('id, user_id')
+
+    .eq('application_id', applicationId)
+
+    .eq('subject', subject)
+
+    .single()
 
 
 
-  const currentSelections: string[] = user.user_metadata?.selections || []
+  if (existing) {
 
-  let newSelections = []
+    if (existing.user_id === userId) {
 
+      await supabase.from('selections').delete().eq('id', existing.id)
 
+    } else {
 
-  if (currentSelections.includes(applicationId)) {
-    newSelections = currentSelections.filter(id => id !== applicationId)
+      return { error: 'This student has already been shortlisted by another professor.' }
+
+    }
+
   } else {
-    newSelections = [...currentSelections, applicationId]
+
+    await supabase.from('selections').insert({ 
+
+      user_id: userId, 
+
+      application_id: applicationId,
+
+      subject: subject
+
+    })
+
   }
-
-
-
-  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-
-    user_metadata: { ...user.user_metadata, selections: newSelections }
-
-  })
-
-
-
-  if (updateError) return { error: updateError.message }
 
 
 
@@ -77,4 +85,3 @@ export async function toggleSelection(applicationId: string) {
   return { success: true }
 
 }
-

@@ -6,6 +6,8 @@ import { useState, useOptimistic, startTransition } from 'react'
 
 import { toggleSelection } from '@/app/actions/toggleSelection'
 
+import DownloadCSVButton from '@/components/dashboard/DownloadCSVButton'
+
 
 
 type Application = {
@@ -48,19 +50,35 @@ const parseSubject = (subj: any) => {
 
 const SUBJECT_MAPPING: Record<string, string[]> = {
 
-  'First Year': ['23CSE111', '23CSE113'],
+  'First Year': ['23CSE111 - Object Oriented Programming', '23CSE113 - User Interface Design'],
 
-  'Second Year': ['23CSE211', '23CSE212', '23CSE213', '23CSE214'],
+  'Second Year': ['23CSE211 - Design and Analysis of Algorithms', '23CSE212 - Principles of Functional Languages', '23CSE213 - Computer Organization and Architecture', '23CSE214 - Operating Systems'],
 
-  'Third Year': ['23CSE311', '23CSE312', '23CSE313', '23CSE314'],
+  'Third Year': ['23CSE311 - Software Engineering', '23CSE312 - Distributed Systems', '23CSE313 - Foundations of Cyber Security', '23CSE314 - Compiler Design'],
 
-  'Third Year Free Electives': ['23CSE475', '23CSE461', '23CSE465', '23CSE363', '23CSE473', '23CSE452', '23CSE334', '23CSE365']
+  'Third Year Free Electives': ['23CSE475 - Generative AI', '23CSE461 - Full Stack Frameworks', '23CSE465 - Mobile Application Development', '23CSE363 - Cloud Computing', '23CSE473 - Neural Networks and Deep Learning', '23CSE452 - Business Analytics', '23CSE334 - Cyber Forensics and Malware', '23CSE365 - Internet of Things']
 
 }
 
 
 
-export default function ApplicationsTable({ applications, initialSelections = new Set() }: { applications: Application[], initialSelections?: Set<string> }) {
+export default function ApplicationsTable({ 
+
+  applications, 
+
+  initialSelections = new Set(),
+
+  takenSelections = new Set()
+
+}: { 
+
+  applications: Application[], 
+
+  initialSelections?: Set<string>,
+
+  takenSelections?: Set<string>
+
+}) {
 
   const [selectedCategory, setSelectedCategory] = useState('All')
 
@@ -90,15 +108,27 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
 
 
-  const handleToggle = async (id: string) => {
+  const handleToggle = async (id: string, subject: string) => {
+
+    const compositeKey = `${id}::${subject}`
+
+    
 
     startTransition(() => {
 
-      addOptimisticSelection(id)
+      addOptimisticSelection(compositeKey)
 
     })
 
-    await toggleSelection(id)
+
+
+    const result = await toggleSelection(id, subject)
+
+    if (result?.error) {
+
+      alert(result.error)
+
+    }
 
   }
 
@@ -218,9 +248,9 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
     <div className="space-y-6">
 
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-start">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-end">
 
-        <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto">
+        <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto items-end">
 
           <div className="w-full md:w-64">
 
@@ -252,25 +282,35 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
         </div>
 
-        <div className="w-full md:w-48">
+        <div className="w-full md:w-auto flex items-end gap-3">
 
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Sort By</label>
+          <div className="w-full md:w-48">
 
-            <select value={`${sortConfig.key}-${sortConfig.direction}`} onChange={(e) => { const [key, direction] = e.target.value.split('-'); setSortConfig({ key, direction }) }} className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500">
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Sort By</label>
 
-              <option value="created_at-desc">Newest First</option>
+              <select value={`${sortConfig.key}-${sortConfig.direction}`} onChange={(e) => { const [key, direction] = e.target.value.split('-'); setSortConfig({ key, direction }) }} className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500">
 
-              <option value="created_at-asc">Oldest First</option>
+                <option value="created_at-desc">Newest First</option>
 
-              <option value="grade-desc">Highest Grade First</option>
+                <option value="created_at-asc">Oldest First</option>
 
-              <option value="grade-asc">Lowest Grade First</option>
+                <option value="grade-desc">Highest Grade First</option>
 
-              <option value="roll_number-asc">Roll Number (Asc)</option>
+                <option value="grade-asc">Lowest Grade First</option>
 
-              <option value="roll_number-desc">Roll Number (Desc)</option>
+                <option value="roll_number-asc">Roll Number (Asc)</option>
 
-            </select>
+                <option value="roll_number-desc">Roll Number (Desc)</option>
+
+              </select>
+
+          </div>
+
+          <div className="flex-shrink-0">
+
+            <DownloadCSVButton applications={sortedApplications} />
+
+          </div>
 
         </div>
 
@@ -340,8 +380,6 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
                 const rowSpan = subjects.length;
 
-                const isSelected = optimisticSelections.has(app.id)
-
 
 
                 return subjects.map((subj, index) => {
@@ -354,6 +392,14 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
 
 
+                  const compositeKey = `${app.id}::${name}`
+
+                  const isMySelection = optimisticSelections.has(compositeKey)
+
+                  const isTakenByOther = takenSelections.has(compositeKey)
+
+
+
                   return (
 
                     <tr key={`${app.id}-${index}`} className={rowClass}>
@@ -362,21 +408,7 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
                         <>
 
-                          <td rowSpan={rowSpan} className="px-4 py-5 text-center border-r dark:border-gray-700 align-middle">
-
-                            <button 
-
-                              onClick={() => handleToggle(app.id)} 
-
-                              className={`text-lg leading-none focus:outline-none transition-transform active:scale-90 mt-0.5 ${isSelected ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-300 hover:text-gray-400'}`}
-
-                              title={isSelected ? "Unselect" : "Select"}
-
-                            >
-
-                              ★
-
-                            </button>
+                          <td rowSpan={rowSpan} className="px-4 py-5 text-center border-r dark:border-gray-700 align-middle bg-white dark:bg-gray-800">
 
                           </td>
 
@@ -404,11 +436,47 @@ export default function ApplicationsTable({ applications, initialSelections = ne
 
                       
 
-                      <td className="px-4 py-5 border-r dark:border-gray-700 align-middle font-medium text-gray-800 dark:text-gray-200 break-words max-w-[200px] text-center">
+                      <td className="px-4 py-5 border-r dark:border-gray-700 align-middle font-medium text-gray-800 dark:text-gray-200 break-words max-w-[200px] text-center relative group">
 
-                        {name}
+                        <div className="flex items-center justify-center gap-2">
+
+                          {isTakenByOther ? (
+
+                            <span title="Shortlisted by another professor" className="text-red-400 cursor-not-allowed">
+
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+
+                                <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" clipRule="evenodd" />
+
+                              </svg>
+
+                            </span>
+
+                          ) : (
+
+                            <button 
+
+                              onClick={() => handleToggle(app.id, name)} 
+
+                              className={`text-xl leading-none focus:outline-none transition-transform active:scale-90 ${isMySelection ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-300 hover:text-gray-400'}`}
+
+                              title={isMySelection ? "Unselect" : "Shortlist this subject"}
+
+                            >
+
+                              ★
+
+                            </button>
+
+                          )}
+
+                          <span>{name}</span>
+
+                        </div>
 
                       </td>
+
+
 
                       <td className="px-4 py-5 border-r dark:border-gray-700 align-middle text-center font-mono font-bold text-sm">
 

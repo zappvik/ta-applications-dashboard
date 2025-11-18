@@ -46,9 +46,9 @@ export default function InstructionsBanner() {
 
               <li>Use the <strong>Filters</strong> above to narrow down students by Year or Subject.</li>
 
-              <li>Click the <strong>Star (★)</strong> icon next to a student's name to shortlist them.</li>
+              <li>Click the <strong>Star (★)</strong> icon inside the Subject column to shortlist a student for that specific subject.</li>
 
-              <li>View your personal shortlist in the <strong>Chosen</strong> tab in the sidebar.</li>
+              <li>View your personal shortlist in the <strong>Shortlisted</strong> tab in the sidebar.</li>
 
             </ul>
 

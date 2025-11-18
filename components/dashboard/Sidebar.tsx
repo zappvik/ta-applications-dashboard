@@ -30,35 +30,33 @@ export default function Sidebar() {
 
   return (
 
-    <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-20">
+    <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col z-20 transition-colors duration-300">
 
-      <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+      <div className="flex items-center h-16 px-6 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
 
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-3">
 
-          <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+          <svg className="w-8 h-8 text-blue-600 dark:text-blue-500" fill="currentColor" viewBox="0 0 24 24">
 
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M11.7 2.805a.75.75 0 01.6 0A60.65 60.65 0 0122.83 8.72a.75.75 0 01-.231 1.337 49.949 49.949 0 00-9.902 3.912l-.003.002-.34.18a.75.75 0 01-.707 0A50.009 50.009 0 002.1 10.057a.75.75 0 01-.231-1.337A60.653 60.653 0 0111.7 2.805z" />
 
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+            <path d="M13.06 15.473a48.45 48.45 0 017.666-3.282c.134 1.438.227 2.945.227 4.53 0 5.927-2.604 9.16-8.153 11.269a.75.75 0 01-.6 0C6.604 25.97 4 22.736 4 16.809c0-1.605.096-3.133.234-4.589a48.863 48.863 0 017.558 3.24l.434.227.019.009.018-.008z" />
 
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          </svg>
 
-            </svg>
+          
 
-          </div>
+          <div className="flex flex-col justify-center">
 
-          <div className="flex flex-col min-w-0 justify-center">
+            <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight leading-none">
 
-            <span className="text-sm font-bold text-gray-900 dark:text-white leading-none truncate">
-
-              Winter TA
+              Winter <span className="text-blue-600 dark:text-blue-500">TA</span>
 
             </span>
 
-            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1 truncate">
+            <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400 tracking-widest uppercase mt-0.5">
 
-              Applications
+              Admin Portal
 
             </span>
 
@@ -70,7 +68,7 @@ export default function Sidebar() {
 
       
 
-      <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
+      <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
 
         {navigation.map((item) => {
 
@@ -84,13 +82,13 @@ export default function Sidebar() {
 
               href={item.href}
 
-              className={`block py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group ${
 
                 isActive
 
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
 
-                  : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700'
+                  : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-white'
 
               }`}
 

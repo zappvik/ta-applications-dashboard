@@ -10,7 +10,13 @@ import InstructionsBanner from '@/components/dashboard/InstructionsBanner'
 
 
 
-async function getData() {
+export default async function ApplicationsPage() {
+
+  const session = await getServerSession(authOptions)
+
+  const userId = (session?.user as any)?.id
+
+
 
   const supabase = createClient(
 
@@ -21,6 +27,8 @@ async function getData() {
     { auth: { persistSession: false } }
 
   )
+
+
 
   const { data: applications } = await supabase
 
@@ -30,43 +38,37 @@ async function getData() {
 
     .order('created_at', { ascending: false })
 
-  return applications || []
-
-}
 
 
+  const { data: allSelections } = await supabase
 
-async function getUserSelections(userId: string) {
+    .from('selections')
 
-  const supabase = createClient(
+    .select('application_id, subject, user_id')
 
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    
 
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  const mySelections = new Set<string>()
 
-    { auth: { persistSession: false } }
-
-  )
-
-  const { data: { user } } = await supabase.auth.admin.getUserById(userId)
-
-  return user?.user_metadata?.selections || []
-
-}
+  const takenSelections = new Set<string>()
 
 
 
-export default async function ApplicationsPage() {
+  allSelections?.forEach(s => {
 
-  const session = await getServerSession(authOptions)
+    const key = `${s.application_id}::${s.subject}`
 
-  const userId = (session?.user as any)?.id
+    if (s.user_id === userId) {
 
-  
+      mySelections.add(key)
 
-  const applications = await getData()
+    } else {
 
-  const selections = userId ? await getUserSelections(userId) : []
+      takenSelections.add(key)
+
+    }
+
+  })
 
 
 
@@ -82,7 +84,7 @@ export default async function ApplicationsPage() {
 
       <p className="mt-2 mb-6 text-gray-600 dark:text-gray-300">
 
-        Here is a list of all {applications.length} applications submitted.
+        Here is a list of all {applications?.length || 0} applications submitted.
 
       </p>
 
@@ -96,9 +98,11 @@ export default async function ApplicationsPage() {
 
         <ApplicationsTable 
 
-          applications={applications} 
+          applications={applications || []} 
 
-          initialSelections={new Set(selections)} 
+          initialSelections={mySelections}
+
+          takenSelections={takenSelections}
 
         />
 

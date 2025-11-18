@@ -4,6 +4,8 @@ import LogoutButton from '@/components/auth/LogoutButton'
 
 import Sidebar from '@/components/dashboard/Sidebar'
 
+import Breadcrumbs from '@/components/dashboard/Breadcrumbs'
+
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 
@@ -18,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
 
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-black overflow-hidden font-sans">
 
       <Sidebar />
 
@@ -26,17 +28,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        <header className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0 z-10">
+        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 flex-shrink-0 z-10">
 
-          <div className="flex justify-between items-center w-full">
+          <div className="flex justify-between items-center h-16 px-6">
 
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+            
 
-              Welcome, <span className="capitalize">{user?.name || 'User'}</span>
+            <Breadcrumbs />
 
-            </h2>
+
 
             <div className="flex items-center gap-4">
+
+              <span className="text-base font-semibold text-gray-900 dark:text-white capitalize">
+
+                {user?.name || 'Professor'}
+
+              </span>
+
+              <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
               <LogoutButton />
 
@@ -48,7 +58,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
         
 
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-black">
 
           {children}
 
