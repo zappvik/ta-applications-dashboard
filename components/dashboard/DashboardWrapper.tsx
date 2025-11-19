@@ -21,14 +21,35 @@ export default function DashboardWrapper({
   const [isLoading, setIsLoading] = useState(false)
   const pathname = usePathname()
 
-  useEffect(() => {
+  // Show loading immediately when link is clicked
+  const handleLinkClick = () => {
+    setIsSidebarOpen(false)
     setIsLoading(true)
+  }
+
+  // Hide loading when pathname changes (page has loaded)
+  useEffect(() => {
+    // Small delay to ensure smooth transition
     const timer = setTimeout(() => {
       setIsLoading(false)
-    }, 300) // Show spinner for at least 300ms for smooth UX
+    }, 100)
 
     return () => clearTimeout(timer)
   }, [pathname])
+
+  // Global click handler for all navigation links
+  useEffect(() => {
+    const handleNavigationClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const link = target.closest('a[href]')
+      if (link && link.getAttribute('href')?.startsWith('/dashboard')) {
+        setIsLoading(true)
+      }
+    }
+
+    document.addEventListener('click', handleNavigationClick)
+    return () => document.removeEventListener('click', handleNavigationClick)
+  }, [])
 
   // Only apply translate classes on mobile; desktop should always show sidebar
   const sidebarClasses = isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -38,7 +59,7 @@ export default function DashboardWrapper({
       <div
         className={`fixed inset-y-0 left-0 w-64 z-50 lg:static transition-transform duration-300 transform lg:w-64 flex-shrink-0 ${sidebarClasses}`}
       >
-        <Sidebar onLinkClick={() => setIsSidebarOpen(false)} />
+        <Sidebar onLinkClick={handleLinkClick} />
       </div>
 
       {isSidebarOpen && (
