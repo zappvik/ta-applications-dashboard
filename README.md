@@ -1,33 +1,88 @@
 # Winter TA Applications Dashboard
 
-A modern web application for managing Teaching Assistant (TA) applications. This dashboard allows professors and administrators to view, review, and manage TA applications with an intuitive interface.
+A web application for managing Teaching Assistant applications. Professors and administrators can view, review, and manage TA applications through an intuitive dashboard interface.
 
 ## Features
 
-- 🔐 **Authentication** - Secure login system using NextAuth
-- 📋 **Application Management** - View and manage all TA applications
-- ✅ **Selection System** - Select and shortlist applications by subject
-- 👥 **User Management** - Admin panel for managing professors and users
-- 📊 **Dashboard** - Overview of applications and statistics
-- 📥 **CSV Export** - Download application data as CSV
-- 🌙 **Dark Mode** - Toggle between light and dark themes
-- 📱 **Responsive Design** - Works seamlessly on all devices
+- Secure authentication using NextAuth
+- Application management and viewing
+- Subject-based selection and shortlisting system
+- User management for professors and administrators
+- Dashboard with application statistics and overview
+- CSV export functionality
+- Dark mode support
+- Responsive design for mobile and desktop
+- Smart caching for improved performance
+- Security-first architecture with protected routes
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Supabase
-- **Authentication**: NextAuth.js
-- **Theme**: next-themes
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS
+- Supabase
+- NextAuth.js
+- next-themes
+
+## Core Architecture
+
+### Caching System
+
+The application uses a multi-layer caching approach to optimize performance and reduce server load.
+
+**Client-Side Caching**
+Applications data is cached in React Context after the initial load. This allows instant navigation between pages without additional database queries. The cache persists for the duration of the user session.
+
+**Auto-Refresh**
+Data automatically refreshes every 30 seconds in the background to ensure users see the latest applications without manual intervention. This keeps the cache current while maintaining fast page loads.
+
+**Manual Refresh**
+Users can trigger a manual refresh using the refresh button in the header. This immediately fetches the latest data from the server and updates the cache.
+
+**Server-Side Caching**
+React's `cache()` function prevents duplicate database queries within the same request cycle, reducing unnecessary database calls.
+
+**Optimistic Updates**
+When users toggle selections, the UI updates immediately while the server request processes in the background. If the request fails, the UI reverts to the previous state.
+
+**Benefits**
+- Instant page navigation with no loading delays
+- Reduced database query load
+- Real-time data synchronization
+- Better overall user experience
+
+### Security Features
+
+**Authentication**
+NextAuth.js handles all authentication with secure session management. Users must authenticate before accessing any dashboard routes.
+
+**Protected Routes**
+All dashboard routes require a valid session. Unauthenticated users are redirected to the login page.
+
+**Server-Side Validation**
+Every API route and server action validates the user session before processing requests. This ensures only authenticated users can access or modify data.
+
+**Service Role Access**
+Database operations use the Supabase service role key, which is never exposed to the client. All database queries execute server-side only.
+
+**User Isolation**
+Data is filtered by user ID to ensure users only see and modify their own selections. The selections table includes user_id to enforce data isolation.
+
+**Secure API Endpoints**
+All API routes check authentication status before processing. Unauthorized requests return 401 errors.
+
+**Environment Variables**
+Sensitive keys are stored in environment variables and never committed to version control. The `.env.local` file is excluded from git.
+
+**Session Management**
+JWT-based sessions with automatic token refresh. Sessions are encrypted and stored securely.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- npm, yarn, pnpm, or bun package manager
+- Node.js 18 or higher
+- npm, yarn, pnpm, or bun
 - Supabase account and project
 
 ### Installation
@@ -41,14 +96,10 @@ cd view-applications
 2. Install dependencies:
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
 ```
 
 3. Set up environment variables:
-Create a `.env.local` file in the root directory with the following variables:
+Create a `.env.local` file in the root directory:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -57,37 +108,35 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_nextauth_secret
 ```
 
+Important: Never commit `.env.local` to version control. The `SUPABASE_SERVICE_ROLE_KEY` and `NEXTAUTH_SECRET` are sensitive credentials.
+
 4. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open http://localhost:3000 in your browser.
 
 ## Project Structure
 
 ```
 view-applications/
 ├── app/
-│   ├── (auth)/          # Authentication routes
-│   ├── (dashboard)/     # Dashboard routes
-│   ├── actions/         # Server actions
-│   ├── api/             # API routes
-│   └── layout.tsx       # Root layout
+│   ├── (auth)/              # Authentication routes
+│   ├── (dashboard)/         # Protected dashboard routes
+│   ├── actions/             # Server actions
+│   ├── api/                 # API routes
+│   └── layout.tsx           # Root layout
 ├── components/
-│   ├── auth/            # Authentication components
-│   ├── dashboard/       # Dashboard components
-│   └── ThemeToggle.tsx  # Theme switcher
+│   ├── auth/                # Authentication components
+│   ├── dashboard/           # Dashboard components
+│   └── ThemeToggle.tsx      # Theme switcher
 ├── lib/
-│   ├── supabase.ts      # Supabase client
-│   └── types/           # TypeScript type definitions
-└── public/              # Static assets
+│   ├── cache/               # Server-side caching utilities
+│   ├── context/             # React Context providers
+│   ├── supabase.ts          # Supabase client
+│   └── types/               # TypeScript definitions
+└── public/                  # Static assets
 ```
 
 ## Available Scripts
@@ -99,31 +148,48 @@ view-applications/
 
 ## Environment Variables
 
-Make sure to set up the following environment variables in your `.env.local` file:
+Required environment variables in `.env.local`:
 
-- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
-- `NEXTAUTH_URL` - Your application URL (e.g., http://localhost:3000)
-- `NEXTAUTH_SECRET` - Secret key for NextAuth session encryption
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (keep secret)
+- `NEXTAUTH_URL` - Application URL (e.g., http://localhost:3000)
+- `NEXTAUTH_SECRET` - NextAuth session encryption secret (keep secret)
 
 ## Database Schema
 
-The application uses Supabase with the following main tables:
-- `applications` - Stores TA applications
-- `selections` - Tracks user selections of applications
-- `professors` - User/professor information
+Main Supabase tables:
+
+- `applications` - TA application records
+- `selections` - User selections of applications (includes user_id for isolation)
+- `professors` - Professor/user accounts
+
+## Performance Optimizations
+
+- Data caching in React Context after initial load
+- Background auto-refresh every 30 seconds
+- Optimistic UI updates for immediate feedback
+- Server-side rendering for critical data
+- Automatic code splitting by Next.js
+- Optimized image handling
 
 ## Deployment
 
-The easiest way to deploy this Next.js app is using [Vercel](https://vercel.com):
+Deploy to Vercel:
 
-1. Push your code to GitHub
-2. Import your repository on Vercel
-3. Add your environment variables
-4. Deploy!
+1. Push code to GitHub
+2. Import repository on Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy
 
-For more details, check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
+Production checklist:
+- All environment variables configured
+- `NEXTAUTH_URL` set to production domain
+- `NEXTAUTH_SECRET` is a strong random string
+- Database connection strings verified
+- CORS settings configured if needed
+
+See the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 ## License
 
