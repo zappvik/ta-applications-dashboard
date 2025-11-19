@@ -5,6 +5,8 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 
+import Logo from '@/components/Logo'
+
 export default function LoginForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -73,9 +75,9 @@ export default function LoginForm() {
         </button>
       )}
       <div className="w-full max-w-[23.8rem] p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-          Winter TA Applications Dashboard
-        </h1>
+        <div className="flex justify-center">
+          <Logo size="lg" showText={true} />
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (

@@ -8,6 +8,14 @@ import Watermark from '@/components/Watermark'
 export const metadata: Metadata = {
   title: 'Winter TA Applications Dashboard',
   description: 'View your applications.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
