@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+import Logo from '@/components/Logo'
+
 const navigation = [
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Applications', href: '/dashboard/applications' },
@@ -16,22 +18,7 @@ export default function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
   return (
     <aside className="h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col z-20">
       <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 flex-shrink-0 box-border">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M11.7 2.805a.75.75 0 01.6 0A60.65 60.65 0 0122.83 8.72a.75.75 0 01-.231 1.337 49.949 49.949 0 00-9.902 3.912l-.003.002-.34.18a.75.75 0 01-.707 0A50.009 50.009 0 002.1 10.057a.75.75 0 01-.231-1.337A60.653 60.653 0 0111.7 2.805z" />
-              <path d="M13.06 15.473a48.45 48.45 0 017.666-3.282c.134 1.438.227 2.945.227 4.53 0 5.927-2.604 9.16-8.153 11.269a.75.75 0 01-.6 0C6.604 25.97 4 22.736 4 16.809c0-1.605.096-3.133.234-4.589a48.863 48.863 0 017.558 3.24l.434.227.019.009.018-.008z" />
-            </svg>
-          </div>
-          <div className="flex items-center min-w-0 justify-center">
-            <span className="text-sm font-bold text-blue-600 dark:text-blue-500 tracking-tight leading-none truncate">
-              TA
-            </span>
-            <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight leading-none truncate ml-1">
-              ADMIN PORTAL
-            </span>
-          </div>
-        </div>
+        <Logo size="md" showText={true} />
       </div>
 
       <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
