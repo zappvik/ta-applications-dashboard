@@ -24,20 +24,16 @@ export default function DashboardWrapper({
   const pathname = usePathname()
   const pathnameRef = useRef(pathname)
   
-  // Keep ref in sync with pathname
   useEffect(() => {
     pathnameRef.current = pathname
   }, [pathname])
 
-  // Show loading immediately when link is clicked
   const handleLinkClick = () => {
     setIsSidebarOpen(false)
     setIsLoading(true)
   }
 
-  // Hide loading when pathname changes (page has loaded)
   useEffect(() => {
-    // Small delay to ensure smooth transition
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 100)
@@ -45,14 +41,12 @@ export default function DashboardWrapper({
     return () => clearTimeout(timer)
   }, [pathname])
 
-  // Global click handler for all navigation links
   useEffect(() => {
     const handleNavigationClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       const link = target.closest('a[href]')
       if (link) {
         const href = link.getAttribute('href')
-        // Only show loading if navigating to a different page
         if (href?.startsWith('/dashboard') && href !== pathnameRef.current) {
           setIsLoading(true)
         }
@@ -63,7 +57,6 @@ export default function DashboardWrapper({
     return () => document.removeEventListener('click', handleNavigationClick)
   }, [])
 
-  // Only apply translate classes on mobile; desktop should always show sidebar
   const sidebarClasses = isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
 
   return (
@@ -82,7 +75,6 @@ export default function DashboardWrapper({
   )
 }
 
-// Inner component that has access to ApplicationsProvider context
 function DashboardContent({
   user,
   isSidebarOpen,
@@ -142,7 +134,6 @@ function DashboardContent({
   )
 }
 
-// Header Actions Component
 function HeaderActions({ user }: { user: any }) {
   const { refresh, totalCount, chosenCount, isLoading } = useApplications()
   const { theme, setTheme } = useTheme()
@@ -161,7 +152,6 @@ function HeaderActions({ user }: { user: any }) {
 
   return (
     <>
-      {/* Quick Stats - Hidden on mobile */}
       <div className="hidden md:flex items-center gap-4 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -178,7 +168,6 @@ function HeaderActions({ user }: { user: any }) {
         </div>
       </div>
 
-      {/* Refresh Button */}
       <button
         onClick={handleRefresh}
         disabled={isRefreshing || isLoading}
@@ -200,7 +189,6 @@ function HeaderActions({ user }: { user: any }) {
         </svg>
       </button>
 
-      {/* Theme Toggle */}
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -227,16 +215,13 @@ function HeaderActions({ user }: { user: any }) {
         )}
       </button>
 
-      {/* Divider and User Name - Hidden on mobile */}
       <div className="hidden md:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
       <span className="hidden md:inline text-base font-semibold text-gray-900 dark:text-white capitalize">
         {user?.name || 'User'}
       </span>
       <div className="hidden md:block h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
 
-      {/* Logout - Always visible */}
       <LogoutButton />
     </>
   )
 }
-

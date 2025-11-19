@@ -19,7 +19,6 @@ type ApplicationsContextType = {
   isLoading: boolean
   error: string | null
   refresh: () => Promise<void>
-  // Derived data
   totalCount: number
   recentApplications: Application[]
   chosenCount: number
@@ -34,19 +33,16 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Derived data - computed from applications and selections
   const totalCount = applications.length
   const recentApplications = [...applications]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5)
   
-  // Get unique application IDs from selections
   const chosenApplicationIds = new Set(
     Array.from(selections).map((s) => s.split('::')[0])
   )
   const chosenCount = chosenApplicationIds.size
   
-  // Filter applications that are shortlisted
   const shortlistedApplications = applications.filter((app) =>
     chosenApplicationIds.has(app.id)
   )
@@ -63,10 +59,6 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await response.json()
-      console.log('ApplicationsContext - Fetched data:', {
-        applicationsCount: data.applications?.length || 0,
-        selectionsCount: data.selections?.length || 0
-      })
       setApplications(data.applications || [])
       setSelections(new Set(data.selections || []))
     } catch (err) {
@@ -81,10 +73,9 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     fetchApplications()
     
-    // Auto-refresh every 30 seconds to get new applications in real-time
     const interval = setInterval(() => {
       fetchApplications()
-    }, 30000) // 30 seconds
+    }, 30000)
 
     return () => clearInterval(interval)
   }, [])
@@ -97,7 +88,6 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
         isLoading,
         error,
         refresh: fetchApplications,
-        // Derived data
         totalCount,
         recentApplications,
         chosenCount,
@@ -116,4 +106,3 @@ export function useApplications() {
   }
   return context
 }
-

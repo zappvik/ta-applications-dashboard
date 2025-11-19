@@ -16,6 +16,10 @@ type Application = {
   selected_subjects: any[] | null 
 }
 
+/**
+ * Normalizes subject data from various formats into a consistent structure.
+ * Handles string, object, and null/undefined inputs to ensure robust data parsing.
+ */
 const parseSubject = (subj: any) => {
   if (!subj) return { name: 'Unknown', grade: '-', priority: '-' }
   if (typeof subj === 'string') return { name: subj, grade: '-', priority: '-' }
@@ -71,10 +75,8 @@ export default function ApplicationsTable({
   initialSelections?: Set<string>
   takenSelections?: Set<string>
 }) {
-  // Use context if available, otherwise fall back to props
   const context = useContext(ApplicationsContext)
   
-  // Always prefer context if it exists, otherwise use props
   const applications = context 
     ? context.applications 
     : (propApplications || [])
@@ -82,22 +84,6 @@ export default function ApplicationsTable({
   const initialSelections = context
     ? context.selections
     : (propInitialSelections || new Set<string>())
-  
-  // Debug logging
-  useEffect(() => {
-    if (context) {
-      console.log('ApplicationsTable - Context data:', {
-        applicationsCount: context.applications.length,
-        selectionsCount: context.selections.size,
-        isLoading: context.isLoading,
-        error: context.error
-      })
-    } else {
-      console.log('ApplicationsTable - No context, using props:', {
-        applicationsCount: propApplications?.length || 0
-      })
-    }
-  }, [context, propApplications])
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -124,7 +110,6 @@ export default function ApplicationsTable({
     if (result?.error) {
       alert(result.error)
     } else if (result?.success && context) {
-      // Refresh the cache after successful toggle
       context.refresh()
     }
   }
@@ -227,7 +212,6 @@ export default function ApplicationsTable({
 
   return (
     <div className="space-y-6">
-      {/* Search Bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +227,6 @@ export default function ApplicationsTable({
         />
       </div>
 
-      {/* Controls */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-end">
         <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto items-end">
           <div className="w-full md:w-48">

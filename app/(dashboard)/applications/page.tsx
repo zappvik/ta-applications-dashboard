@@ -39,8 +39,6 @@ export default function ApplicationsPage() {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">View Applications</h1>
       <p className="mt-2 mb-6 text-gray-600 dark:text-gray-300">
         Here is a list of all {applications?.length || 0} applications submitted.
-        {error && <span className="text-red-600 dark:text-red-400 ml-2">(Error: {error})</span>}
-        {isLoading && <span className="text-blue-600 dark:text-blue-400 ml-2">(Loading...)</span>}
       </p>
 
       <InstructionsBanner />

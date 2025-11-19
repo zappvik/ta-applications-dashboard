@@ -33,9 +33,7 @@ export default function DashboardPage() {
         Dashboard Overview
       </h1>
 
-      {/* --- Stats Cards --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Total Applications */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-blue-500">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             Total Applications
@@ -45,7 +43,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Shortlisted (Real Data) */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-green-500">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
             Shortlisted
@@ -57,7 +54,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* --- Recent Applications Table --- */}
       <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">

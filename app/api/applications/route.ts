@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 30 // Revalidate every 30 seconds
+export const revalidate = 30
 
 export async function GET() {
   try {

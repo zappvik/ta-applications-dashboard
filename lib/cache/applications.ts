@@ -1,7 +1,6 @@
 import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-// Cached function to fetch applications
 export const getCachedApplications = cache(async () => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +18,6 @@ export const getCachedApplications = cache(async () => {
   return applications || []
 })
 
-// Cached function to fetch selections
 export const getCachedSelections = cache(async (userId: string) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,4 +41,3 @@ export const getCachedSelections = cache(async (userId: string) => {
 
   return mySelections
 })
-
