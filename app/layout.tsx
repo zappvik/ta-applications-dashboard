@@ -3,7 +3,6 @@ import './globals.css'
 import type { Metadata } from 'next'
 
 import Providers from './providers'
-import ThemeToggle from '@/components/ThemeToggle'
 import Watermark from '@/components/Watermark'
 
 export const metadata: Metadata = {
@@ -22,7 +21,6 @@ export default function RootLayout({
         <Providers>
           <div className="relative z-10 min-h-screen">
             {children}
-            <ThemeToggle />
             <Watermark />
           </div>
         </Providers>

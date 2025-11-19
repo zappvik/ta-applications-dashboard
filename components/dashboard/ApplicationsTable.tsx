@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useOptimistic, startTransition } from 'react'
+import { useState, useOptimistic, startTransition, useContext, useEffect } from 'react'
 import { toggleSelection } from '@/app/actions/toggleSelection'
 import DownloadCSVButton from '@/components/dashboard/DownloadCSVButton'
+import { ApplicationsContext } from '@/lib/context/ApplicationsContext'
 
 type Application = {
   id: string
@@ -62,14 +63,42 @@ const BATCH_MAPPING = [
 ]
 
 export default function ApplicationsTable({
-  applications,
-  initialSelections = new Set(),
+  applications: propApplications,
+  initialSelections: propInitialSelections,
   takenSelections = new Set(),
 }: {
-  applications: Application[]
+  applications?: Application[]
   initialSelections?: Set<string>
   takenSelections?: Set<string>
 }) {
+  // Use context if available, otherwise fall back to props
+  const context = useContext(ApplicationsContext)
+  
+  // Always prefer context if it exists, otherwise use props
+  const applications = context 
+    ? context.applications 
+    : (propApplications || [])
+  
+  const initialSelections = context
+    ? context.selections
+    : (propInitialSelections || new Set<string>())
+  
+  // Debug logging
+  useEffect(() => {
+    if (context) {
+      console.log('ApplicationsTable - Context data:', {
+        applicationsCount: context.applications.length,
+        selectionsCount: context.selections.size,
+        isLoading: context.isLoading,
+        error: context.error
+      })
+    } else {
+      console.log('ApplicationsTable - No context, using props:', {
+        applicationsCount: propApplications?.length || 0
+      })
+    }
+  }, [context, propApplications])
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
@@ -92,7 +121,12 @@ export default function ApplicationsTable({
       addOptimisticSelection(compositeKey)
     })
     const result = await toggleSelection(id, subject)
-    if (result?.error) alert(result.error)
+    if (result?.error) {
+      alert(result.error)
+    } else if (result?.success && context) {
+      // Refresh the cache after successful toggle
+      context.refresh()
+    }
   }
 
   const handleCategoryChange = (category: string) => {
