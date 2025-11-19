@@ -23,9 +23,10 @@ export default function InstructionsBanner() {
           <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">How to use this dashboard</h3>
           <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
             <ul className="list-disc pl-5 space-y-1">
-              <li>Use the <strong>Filters</strong> above to narrow down students by Year or Subject.</li>
+              <li>Use the <strong>Filters</strong> above to narrow down students by Year or Course.</li>
               <li>Click the <strong>Star (★)</strong> icon to shortlist a student for that specific subject.</li>
               <li>View your personal shortlist in the <strong>Shortlisted</strong> tab in the sidebar.</li>
+              <li><strong>Sort By Grade:</strong> When filtering by a specific course, sorting uses that course's grade. Otherwise, it uses the most recently selected subject's grade, or the highest priority subject's grade.</li>
             </ul>
           </div>
         </div>

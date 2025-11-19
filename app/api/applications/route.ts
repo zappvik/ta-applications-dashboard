@@ -30,19 +30,29 @@ export async function GET() {
 
     const { data: allSelections } = await supabase
       .from('selections')
-      .select('application_id, subject, user_id')
+      .select('application_id, subject, user_id, created_at')
+      .order('created_at', { ascending: false })
 
     const mySelections = new Set<string>()
+    const selectionData: Record<string, { subject: string; created_at: string }> = {}
 
     allSelections?.forEach((s) => {
       if (s.user_id === userId) {
-        mySelections.add(`${s.application_id}::${s.subject}`)
+        const key = `${s.application_id}::${s.subject}`
+        mySelections.add(key)
+        if (s.created_at) {
+          selectionData[key] = {
+            subject: s.subject,
+            created_at: s.created_at,
+          }
+        }
       }
     })
 
     return NextResponse.json({
       applications: applications || [],
       selections: Array.from(mySelections),
+      selectionData,
     })
   } catch (error) {
     console.error('Error fetching applications:', error)

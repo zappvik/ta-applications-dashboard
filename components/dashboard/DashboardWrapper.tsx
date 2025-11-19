@@ -105,8 +105,8 @@ function DashboardContent({
       )}
 
       <div className="flex-1 flex flex-col w-full overflow-hidden">
-        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 flex-shrink-0 z-30">
-          <div className="flex justify-between items-center h-16 px-6">
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 z-30 h-16">
+          <div className="flex justify-between items-center h-full px-6 box-border">
             <div className="flex items-center gap-3">
               <HamburgerButton isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
               <Breadcrumbs />

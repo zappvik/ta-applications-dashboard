@@ -15,7 +15,7 @@ export default function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
 
   return (
     <aside className="h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col z-20">
-      <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 flex-shrink-0">
+      <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 flex-shrink-0 box-border">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

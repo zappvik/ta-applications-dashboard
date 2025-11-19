@@ -13,9 +13,15 @@ type Application = {
   selected_subjects: any[] | null
 }
 
+type SelectionData = {
+  subject: string
+  created_at: string
+}
+
 type ApplicationsContextType = {
   applications: Application[]
   selections: Set<string>
+  selectionData: Record<string, SelectionData>
   isLoading: boolean
   error: string | null
   refresh: () => Promise<void>
@@ -30,6 +36,7 @@ export const ApplicationsContext = createContext<ApplicationsContextType | undef
 export function ApplicationsProvider({ children }: { children: ReactNode }) {
   const [applications, setApplications] = useState<Application[]>([])
   const [selections, setSelections] = useState<Set<string>>(new Set())
+  const [selectionData, setSelectionData] = useState<Record<string, SelectionData>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -61,6 +68,7 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
       const data = await response.json()
       setApplications(data.applications || [])
       setSelections(new Set(data.selections || []))
+      setSelectionData(data.selectionData || {})
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
       setError(errorMessage)
@@ -85,6 +93,7 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
       value={{
         applications,
         selections,
+        selectionData,
         isLoading,
         error,
         refresh: fetchApplications,

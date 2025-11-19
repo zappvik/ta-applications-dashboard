@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useOptimistic, startTransition, useContext, useEffect } from 'react'
+import { useState, useOptimistic, startTransition, useContext, useEffect, useRef } from 'react'
 import { toggleSelection } from '@/app/actions/toggleSelection'
 import DownloadCSVButton from '@/components/dashboard/DownloadCSVButton'
 import { ApplicationsContext } from '@/lib/context/ApplicationsContext'
@@ -85,11 +85,17 @@ export default function ApplicationsTable({
     ? context.selections
     : (propInitialSelections || new Set<string>())
 
+  const selectionData = context?.selectionData || {}
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [selectedBatch, setSelectedBatch] = useState('All')
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' })
+  const [isSubjectSelectOpen, setIsSubjectSelectOpen] = useState(false)
+  const [isBatchSelectOpen, setIsBatchSelectOpen] = useState(false)
+  const [isCategorySelectOpen, setIsCategorySelectOpen] = useState(false)
+  const [isSortSelectOpen, setIsSortSelectOpen] = useState(false)
 
   const [optimisticSelections, addOptimisticSelection] = useOptimistic(
     initialSelections,
@@ -101,10 +107,55 @@ export default function ApplicationsTable({
     }
   )
 
+  const [localSelectionTimestamps, setLocalSelectionTimestamps] = useState<Record<string, number>>({})
+  const subjectDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (subjectDropdownRef.current && !subjectDropdownRef.current.contains(event.target as Node)) {
+        setIsSubjectSelectOpen(false)
+      }
+    }
+
+    if (isSubjectSelectOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isSubjectSelectOpen])
+
+  useEffect(() => {
+    if (selectionData && Object.keys(selectionData).length > 0) {
+      const syncedTimestamps: Record<string, number> = {}
+      Object.entries(selectionData).forEach(([key, data]) => {
+        if (data.created_at) {
+          syncedTimestamps[key] = new Date(data.created_at).getTime()
+        }
+      })
+      setLocalSelectionTimestamps((prev) => ({ ...prev, ...syncedTimestamps }))
+    }
+  }, [selectionData])
+
   const handleToggle = async (id: string, subject: string) => {
     const compositeKey = `${id}::${subject}`
+    const isAdding = !optimisticSelections.has(compositeKey)
+    
     startTransition(() => {
       addOptimisticSelection(compositeKey)
+      if (isAdding) {
+        setLocalSelectionTimestamps((prev) => ({
+          ...prev,
+          [compositeKey]: Date.now(),
+        }))
+      } else {
+        setLocalSelectionTimestamps((prev) => {
+          const newTimestamps = { ...prev }
+          delete newTimestamps[compositeKey]
+          return newTimestamps
+        })
+      }
     })
     const result = await toggleSelection(id, subject)
     if (result?.error) {
@@ -180,25 +231,91 @@ export default function ApplicationsTable({
   const sortedApplications = [...filteredApplications].sort((a, b) => {
     if (sortConfig.key === 'grade') {
       const GRADE_VALUES: Record<string, number> = {
-        O: 10,
+        'O': 10,
         'A+': 9.5,
-        A: 9,
+        'A': 9,
         'B+': 8,
-        B: 7,
-        C: 6,
-        P: 5,
-        F: 0,
+        'B': 7,
+        'C': 6,
+        'P': 5,
+        'F': 0,
+        '0': 0,
         '-': -1,
       }
-      const getGradeScore = (grade: string) =>
-        GRADE_VALUES[grade.trim().toUpperCase()] ?? -1
-      const maxGradeA = Array.isArray(a.selected_subjects)
-        ? Math.max(...a.selected_subjects.map((s) => getGradeScore(parseSubject(s).grade)))
-        : -1
-      const maxGradeB = Array.isArray(b.selected_subjects)
-        ? Math.max(...b.selected_subjects.map((s) => getGradeScore(parseSubject(s).grade)))
-        : -1
-      return sortConfig.direction === 'desc' ? maxGradeB - maxGradeA : maxGradeA - maxGradeB
+      const getGradeScore = (grade: string) => {
+        const trimmedGrade = grade.trim().toUpperCase()
+        if (trimmedGrade === '' || trimmedGrade === '0') return 0
+        return GRADE_VALUES[trimmedGrade] ?? -1
+      }
+
+      const getGradeForSorting = (app: Application): number => {
+        if (!app.selected_subjects || !Array.isArray(app.selected_subjects) || app.selected_subjects.length === 0) {
+          return -1
+        }
+
+        if (selectedSubjects.length > 0) {
+          for (const filterSubject of selectedSubjects) {
+            const filterCode = filterSubject.split(' - ')[0]
+            for (const subj of app.selected_subjects) {
+              const { name, grade } = parseSubject(subj)
+              if (String(name).includes(filterCode)) {
+                return getGradeScore(grade)
+              }
+            }
+          }
+        }
+
+        const selectedSubjectsWithTimestamps = Array.from(optimisticSelections)
+          .filter((s) => s.startsWith(`${app.id}::`))
+          .map((s) => {
+            const selData = selectionData[s]
+            const localTimestamp = localSelectionTimestamps[s]
+            let timestamp: number = 0
+            
+            if (localTimestamp) {
+              timestamp = localTimestamp
+            } else if (selData?.created_at) {
+              timestamp = new Date(selData.created_at).getTime()
+            }
+            
+            return { subject: s.split('::')[1], timestamp, key: s }
+          })
+          .filter((item) => item.timestamp > 0)
+          .sort((a, b) => b.timestamp - a.timestamp)
+
+        if (selectedSubjectsWithTimestamps.length > 0) {
+          const mostRecentSubject = selectedSubjectsWithTimestamps[0].subject
+          for (const subj of app.selected_subjects) {
+            const { name, grade } = parseSubject(subj)
+            if (name === mostRecentSubject) {
+              return getGradeScore(grade)
+            }
+          }
+        }
+
+        const subjectsWithPriority = app.selected_subjects
+          .map((s) => {
+            const { priority, grade } = parseSubject(s)
+            const priorityNum = priority !== '-' ? parseInt(priority, 10) : Infinity
+            return { priority: isNaN(priorityNum) ? Infinity : priorityNum, grade, gradeScore: getGradeScore(grade) }
+          })
+          .filter((s) => s.priority !== Infinity)
+        
+        if (subjectsWithPriority.length > 0) {
+          const minPriority = Math.min(...subjectsWithPriority.map((s) => s.priority))
+          const priorityOneSubject = subjectsWithPriority.find((s) => s.priority === minPriority)
+          if (priorityOneSubject) {
+            return priorityOneSubject.gradeScore
+          }
+        }
+
+        const allGrades = app.selected_subjects.map((s) => getGradeScore(parseSubject(s).grade))
+        return Math.max(...allGrades)
+      }
+
+      const gradeA = getGradeForSorting(a)
+      const gradeB = getGradeForSorting(b)
+      return sortConfig.direction === 'desc' ? gradeB - gradeA : gradeA - gradeB
     }
     if (sortConfig.key === 'roll_number') {
       return sortConfig.direction === 'asc'
@@ -227,84 +344,168 @@ export default function ApplicationsTable({
         />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-end">
-        <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto items-end">
-          <div className="w-full md:w-48">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-start pb-8">
+        <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto items-start">
+          <div className="w-full md:w-48 relative">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
               Filter by Batch
             </label>
-            <select
-              value={selectedBatch}
-              onChange={(e) => setSelectedBatch(e.target.value)}
-              className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-            >
-              {BATCH_MAPPING.map((batch) => (
-                <option key={batch.value} value={batch.value}>
-                  {batch.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedBatch}
+                onChange={(e) => {
+                  setSelectedBatch(e.target.value)
+                  setIsBatchSelectOpen(false)
+                }}
+                onMouseDown={() => setIsBatchSelectOpen(!isBatchSelectOpen)}
+                onBlur={() => setIsBatchSelectOpen(false)}
+                className="block w-full px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                {BATCH_MAPPING.map((batch) => (
+                  <option key={batch.value} value={batch.value}>
+                    {batch.label}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                {isBatchSelectOpen ? (
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="w-full md:w-48">
+          <div className="w-full md:w-48 relative">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
               Filter by Course Year
             </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="All">All Years</option>
-              {Object.keys(SUBJECT_MAPPING).map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  handleCategoryChange(e.target.value)
+                  setIsCategorySelectOpen(false)
+                }}
+                onMouseDown={() => setIsCategorySelectOpen(!isCategorySelectOpen)}
+                onBlur={() => setIsCategorySelectOpen(false)}
+                className="block w-full px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                <option value="All">All Years</option>
+                {Object.keys(SUBJECT_MAPPING).map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                {isCategorySelectOpen ? (
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="w-full md:w-80">
+          <div className="w-full md:w-auto relative">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Add Subject Filter
+              Filter by Course
             </label>
-            <select
-              value=""
-              onChange={(e) => handleSubjectSelect(e.target.value)}
-              className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="" disabled>
-                Select subjects...
-              </option>
-              {availableSubjects.map((subject) => (
-                <option key={subject} value={subject} disabled={selectedSubjects.includes(subject)}>
-                  {subject}
-                </option>
-              ))}
-            </select>
+            <div ref={subjectDropdownRef} className="relative inline-block w-full md:w-auto">
+              <button
+                type="button"
+                onClick={() => setIsSubjectSelectOpen(!isSubjectSelectOpen)}
+                className="flex items-center justify-between w-full min-w-[320px] px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 text-left"
+              >
+                <span className={selectedSubjects.length > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
+                  {selectedSubjects.length > 0 ? selectedSubjects.join(', ') : 'Filter by course'}
+                </span>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                  {isSubjectSelectOpen ? (
+                    <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+              {isSubjectSelectOpen && (
+                <div className="absolute z-50 w-full min-w-[320px] mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {availableSubjects.map((subject) => (
+                    <button
+                      key={subject}
+                      type="button"
+                      onClick={() => {
+                        if (!selectedSubjects.includes(subject)) {
+                          handleSubjectSelect(subject)
+                        }
+                        setIsSubjectSelectOpen(false)
+                      }}
+                      disabled={selectedSubjects.includes(subject)}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 ${
+                        selectedSubjects.includes(subject)
+                          ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500'
+                          : 'text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      {subject}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="w-full md:w-auto flex items-end gap-3">
-          <div className="w-full md:w-48">
+          <div className="w-full md:w-48 relative">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
               Sort By
             </label>
-            <select
-              value={`${sortConfig.key}-${sortConfig.direction}`}
-              onChange={(e) => {
-                const [key, direction] = e.target.value.split('-')
-                setSortConfig({ key, direction })
-              }}
-              className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="created_at-desc">Newest First</option>
-              <option value="created_at-asc">Oldest First</option>
-              <option value="grade-desc">Highest Grade First</option>
-              <option value="grade-asc">Lowest Grade First</option>
-              <option value="roll_number-asc">Roll Number (Asc)</option>
-              <option value="roll_number-desc">Roll Number (Desc)</option>
-            </select>
+            <div className="relative">
+              <select
+                value={`${sortConfig.key}-${sortConfig.direction}`}
+                onChange={(e) => {
+                  const [key, direction] = e.target.value.split('-')
+                  setSortConfig({ key, direction })
+                  setIsSortSelectOpen(false)
+                }}
+                onMouseDown={() => setIsSortSelectOpen(!isSortSelectOpen)}
+                onBlur={() => setIsSortSelectOpen(false)}
+                className="block w-full px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                <option value="created_at-desc">Newest First</option>
+                <option value="created_at-asc">Oldest First</option>
+                <option value="grade-desc">Highest Grade First</option>
+                <option value="grade-asc">Lowest Grade First</option>
+                <option value="roll_number-asc">Roll Number (Asc)</option>
+                <option value="roll_number-desc">Roll Number (Desc)</option>
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                {isSortSelectOpen ? (
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </div>
+            </div>
           </div>
           <div className="flex-shrink-0">
             <DownloadCSVButton applications={sortedApplications} />
