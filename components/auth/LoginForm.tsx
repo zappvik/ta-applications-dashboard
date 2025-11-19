@@ -40,7 +40,7 @@ export default function LoginForm() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-transparent transition-colors duration-200">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="w-full max-w-[23.8rem] p-8 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
           Winter TA Applications Dashboard
         </h1>
