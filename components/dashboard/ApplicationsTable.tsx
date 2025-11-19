@@ -77,13 +77,10 @@ export default function ApplicationsTable({
 }) {
   const context = useContext(ApplicationsContext)
   
-  const applications = context 
-    ? context.applications 
-    : (propApplications || [])
+  // Prioritize propApplications if provided (e.g., for shortlisted page)
+  const applications = propApplications || (context?.applications || [])
   
-  const initialSelections = context
-    ? context.selections
-    : (propInitialSelections || new Set<string>())
+  const initialSelections = propInitialSelections || (context?.selections || new Set<string>())
 
   const selectionData = context?.selectionData || {}
 
