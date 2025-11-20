@@ -26,6 +26,11 @@ type Application = {
 
 }
 
+type SelectionData = {
+  subject: string
+  created_at: string
+}
+
 
 
 const parseSubject = (subj: any) => {
@@ -50,27 +55,48 @@ const formatSubjects = (subjects: any[] | null): string => {
 
 
 
-const generateCSV = (applications: Application[]): string => {
+const generateCSV = (
+  applications: Application[],
+  selections?: Set<string>,
+  selectionData?: Record<string, SelectionData>
+): string => {
+  const includeShortlistedSubjects = selections !== undefined && selectionData !== undefined
 
-  const headers = ['Student Name', 'Roll Number', 'Email', 'Subjects', 'Reason', 'Internship', 'Submitted Date']
+  const headers = includeShortlistedSubjects
+    ? ['Student Name', 'Roll Number', 'Email', 'Shortlisted Subject(s)', 'Subjects', 'Reason', 'Internship', 'Submitted Date']
+    : ['Student Name', 'Roll Number', 'Email', 'Subjects', 'Reason', 'Internship', 'Submitted Date']
 
-  const rows = applications.map(app => [
+  const rows = applications.map(app => {
+    let shortlistedSubjects = ''
+    if (includeShortlistedSubjects && selections && selectionData) {
+      const appSelections = Array.from(selections)
+        .filter(s => s.startsWith(`${app.id}::`))
+        .map(s => {
+          const data = selectionData[s]
+          return data ? data.subject : s.split('::')[1]
+        })
+      shortlistedSubjects = appSelections.length > 0 ? appSelections.join(', ') : 'Not shortlisted'
+    }
 
-    app.student_name || '',
+    const baseRow = [
+      app.student_name || '',
+      app.roll_number || '',
+      app.email || '',
+    ]
 
-    app.roll_number || '',
+    if (includeShortlistedSubjects) {
+      baseRow.push(shortlistedSubjects)
+    }
 
-    app.email || '',
+    baseRow.push(
+      formatSubjects(app.selected_subjects),
+      (app.reason || '').replace(/"/g, '""'),
+      (app.internship || '').replace(/"/g, '""'),
+      new Date(app.created_at).toLocaleDateString()
+    )
 
-    formatSubjects(app.selected_subjects),
-
-    (app.reason || '').replace(/"/g, '""'),
-
-    (app.internship || '').replace(/"/g, '""'),
-
-    new Date(app.created_at).toLocaleDateString()
-
-  ])
+    return baseRow
+  })
 
   const csvRows = [
 
@@ -90,17 +116,21 @@ export default function DownloadCSVButton({
 
   applications, 
 
-  filename = 'applications_list.csv' 
+  filename = 'applications_list.csv',
+  selections,
+  selectionData
 
 }: { 
 
   applications: Application[], 
 
-  filename?: string 
+  filename?: string,
+  selections?: Set<string>,
+  selectionData?: Record<string, SelectionData>
 
 }) {
 
-  const csvContent = useMemo(() => generateCSV(applications), [applications])
+  const csvContent = useMemo(() => generateCSV(applications, selections, selectionData), [applications, selections, selectionData])
 
 
 

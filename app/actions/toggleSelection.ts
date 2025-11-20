@@ -5,10 +5,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
-/**
- * Toggles the selection state of a subject for an application.
- * Implements an idempotent toggle: if selection exists, removes it; otherwise creates it.
- */
 export async function toggleSelection(applicationId: string, subject: string) {
   const session = await getServerSession(authOptions)
   const userId = (session?.user as any)?.id

@@ -19,7 +19,6 @@ export default function Logo({ className = '', showText = true, size = 'md' }: L
 
   return (
     <div className={`flex items-center ${currentSize.gap} ${className}`}>
-      {/* Single icon - UserCog combines user and gear */}
       <div className={`${currentSize.icon} flex-shrink-0 flex items-center justify-center`}>
         <UserCog
           size={currentSize.iconSize}
@@ -28,9 +27,8 @@ export default function Logo({ className = '', showText = true, size = 'md' }: L
         />
       </div>
 
-      {/* Text - all bold */}
       {showText && (
-        <div className={`flex items-center ${currentSize.text} font-bold tracking-tight leading-none`}>
+        <div className={`flex items-center ${currentSize.text} font-bold tracking-tight leading-none whitespace-nowrap`}>
           <span className="text-blue-600 dark:text-blue-400 font-bold">TA</span>
           <span className="text-gray-900 dark:text-white ml-1.5 font-bold">ADMIN PORTAL</span>
         </div>

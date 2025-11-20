@@ -65,63 +65,48 @@ export default function ChangePasswordForm() {
 
 
   return (
-
-    <div className="max-w-md">
-
-      <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Change Password</h3>
+    <div className="flex flex-col h-full">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        Change Password
+      </h2>
 
       {msg && (
-
         <div className={`p-3 rounded text-sm mb-4 ${msg.type==='success'?'bg-green-900 text-green-200':'bg-red-900 text-red-200'}`}>
-
           {msg.text}
-
         </div>
-
       )}
 
-      <form onSubmit={handle} className="space-y-4">
-
+      <form onSubmit={handle} className="space-y-4 flex-1 flex flex-col">
         <div>
-
-          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">New Password</label>
-
-          <input 
-
-            type="password" 
-
-            placeholder="Enter new password" 
-
-            required 
-
-            className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" 
-
-            value={newPass} 
-
-            onChange={e=>setNewPass(e.target.value)} 
-
-          />
-
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            New Password
+          </label>
+          <div className="relative">
+            <input 
+              type="password" 
+              placeholder="Enter new password" 
+              required 
+              className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+              style={{
+                WebkitTextSecurity: 'disc',
+              }}
+              value={newPass} 
+              onChange={e=>setNewPass(e.target.value)} 
+            />
+          </div>
         </div>
 
-        <button 
-
-          type="submit" 
-
-          disabled={loading} 
-
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
-
-        >
-
-          {loading ? 'Updating...' : 'Update Password'}
-
-        </button>
-
+        <div className="mt-auto">
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Updating...' : 'Update Password'}
+          </button>
+        </div>
       </form>
-
     </div>
-
   )
 
 }

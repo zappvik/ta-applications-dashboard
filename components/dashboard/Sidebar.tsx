@@ -12,13 +12,15 @@ const navigation = [
   { name: 'Settings', href: '/dashboard/settings' },
 ]
 
-export default function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
+export default function Sidebar({ onLinkClick }: { onLinkClick?: (href?: string) => void }) {
   const pathname = usePathname()
 
   return (
     <aside className="h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col z-20">
-      <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 flex-shrink-0 box-border">
-        <Logo size="md" showText={true} />
+      <div className="flex items-center justify-center h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 flex-shrink-0 box-border relative">
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <Logo size="md" showText={true} />
+        </div>
       </div>
 
       <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
@@ -28,7 +30,13 @@ export default function Sidebar({ onLinkClick }: { onLinkClick?: () => void }) {
             <Link
               key={item.name}
               href={item.href}
-              onClick={onLinkClick}
+              onClick={(e) => {
+                if (item.href === pathname) {
+                  e.preventDefault()
+                  return
+                }
+                onLinkClick?.(item.href)
+              }}
               className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group ${
                 isActive
                   ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'

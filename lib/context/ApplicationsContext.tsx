@@ -83,7 +83,7 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
     
     const interval = setInterval(() => {
       fetchApplications()
-    }, 30000)
+    }, 1800000) // 30 minutes
 
     return () => clearInterval(interval)
   }, [])
