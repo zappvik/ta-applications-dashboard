@@ -14,7 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     <SessionProvider>
 
-      <NextThemesProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem={false}>
 
         {children}
 

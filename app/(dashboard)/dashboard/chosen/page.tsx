@@ -4,7 +4,7 @@ import ApplicationsTable from '@/components/dashboard/ApplicationsTable'
 import { useApplications } from '@/lib/context/ApplicationsContext'
 
 export default function ChosenPage() {
-  const { shortlistedApplications, selections, isLoading, error } = useApplications()
+  const { shortlistedApplications, selections, selectionData, isLoading, error } = useApplications()
 
   if (isLoading) {
     return (

@@ -1,18 +1,41 @@
-/* Load Satoshi from CDN to avoid missing local font files */
 @import url('https://fonts.cdnfonts.com/css/satoshi');
 
 @tailwind base;
-
 @tailwind components;
-
 @tailwind utilities;
 
 :root {
   --font-satoshi: 'Satoshi', sans-serif;
 }
 
-/* Apply Tailwind base classes */
 body {
   @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white;
   font-family: var(--font-satoshi);
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+input[type="password"] {
+  text-overflow: ellipsis;
+}
+
+input[type="password"]::placeholder {
+  opacity: 1;
 }

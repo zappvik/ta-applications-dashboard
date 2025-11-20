@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useOptimistic, startTransition, useContext, useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { toggleSelection } from '@/app/actions/toggleSelection'
 import DownloadCSVButton from '@/components/dashboard/DownloadCSVButton'
+import DownloadShortlistedCSVButton from '@/components/dashboard/DownloadShortlistedCSVButton'
 import { ApplicationsContext } from '@/lib/context/ApplicationsContext'
 
 type Application = {
@@ -16,10 +18,6 @@ type Application = {
   selected_subjects: any[] | null 
 }
 
-/**
- * Normalizes subject data from various formats into a consistent structure.
- * Handles string, object, and null/undefined inputs to ensure robust data parsing.
- */
 const parseSubject = (subj: any) => {
   if (!subj) return { name: 'Unknown', grade: '-', priority: '-' }
   if (typeof subj === 'string') return { name: subj, grade: '-', priority: '-' }
@@ -76,8 +74,10 @@ export default function ApplicationsTable({
   takenSelections?: Set<string>
 }) {
   const context = useContext(ApplicationsContext)
+  const pathname = usePathname()
   
-  // Prioritize propApplications if provided (e.g., for shortlisted page)
+  const isShortlistedPage = pathname === '/dashboard/chosen'
+  
   const applications = propApplications || (context?.applications || [])
   
   const initialSelections = propInitialSelections || (context?.selections || new Set<string>())
@@ -505,7 +505,19 @@ export default function ApplicationsTable({
             </div>
           </div>
           <div className="flex-shrink-0">
-            <DownloadCSVButton applications={sortedApplications} />
+            {isShortlistedPage ? (
+              <DownloadShortlistedCSVButton 
+                applications={sortedApplications}
+                selections={context?.selections || initialSelections}
+                selectionData={selectionData}
+              />
+            ) : (
+              <DownloadCSVButton 
+                applications={sortedApplications} 
+                selections={propApplications ? (context?.selections || initialSelections) : undefined}
+                selectionData={propApplications ? selectionData : undefined}
+              />
+            )}
           </div>
         </div>
       </div>

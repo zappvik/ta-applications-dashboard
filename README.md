@@ -9,9 +9,14 @@ A web application for managing Teaching Assistant applications. Professors and a
 - Subject-based selection and shortlisting system
 - User management for professors and administrators
 - Dashboard with application statistics and overview
-- CSV export functionality
-- Dark mode support
-- Responsive design for mobile and desktop
+- **Dual CSV export functionality:**
+  - Shortlisted CSV: Simplified format with one row per student (Name, Roll Number, Email, Subjects as comma-separated list)
+  - Full CSV: Complete application details with all fields
+- Breadcrumb navigation with clickable links
+- Settings page with preferences, password management, and feature requests
+- Reference guide integrated in settings
+- Dark mode support with theme persistence
+- Fully responsive design optimized for mobile and desktop
 - Smart caching for improved performance
 - Security-first architecture with protected routes
 
@@ -34,7 +39,7 @@ The application uses a multi-layer caching approach to optimize performance and 
 Applications data is cached in React Context after the initial load. This allows instant navigation between pages without additional database queries. The cache persists for the duration of the user session.
 
 **Auto-Refresh**
-Data automatically refreshes every 30 seconds in the background to ensure users see the latest applications without manual intervention. This keeps the cache current while maintaining fast page loads.
+Data automatically refreshes every 30 minutes in the background to ensure users see the latest applications without manual intervention. This keeps the cache current while maintaining fast page loads. Users can also manually refresh using the refresh button in the header.
 
 **Manual Refresh**
 Users can trigger a manual refresh using the refresh button in the header. This immediately fetches the latest data from the server and updates the cache.
@@ -164,14 +169,44 @@ Main Supabase tables:
 - `selections` - User selections of applications (includes user_id for isolation)
 - `professors` - Professor/user accounts
 
+## Key Features
+
+### CSV Export
+
+**Shortlisted CSV Export:**
+- Available on the Shortlisted page
+- Format: Name, Roll Number, Email, Subjects (comma-separated)
+- One row per student with all shortlisted subjects in a single cell
+- Optimized for sharing with faculty members
+
+**Full CSV Export:**
+- Available on the Applications page
+- Includes all application details: Student Name, Roll Number, Email, Subjects, Reason, Internship, Submitted Date
+- Complete data export for comprehensive analysis
+
+### Navigation
+
+- Breadcrumb navigation showing current page path
+- Clickable breadcrumbs for quick navigation
+- Mobile-optimized breadcrumbs with responsive text sizing
+- Sidebar navigation with active page highlighting
+
+### Settings
+
+- Theme preferences (Light/Dark mode)
+- Password change functionality
+- Feature request button (opens Microsoft Teams chat)
+- Reference guide with essential tips and CSV format information
+
 ## Performance Optimizations
 
 - Data caching in React Context after initial load
-- Background auto-refresh every 30 seconds
+- Background auto-refresh every 30 minutes
 - Optimistic UI updates for immediate feedback
 - Server-side rendering for critical data
 - Automatic code splitting by Next.js
 - Optimized image handling
+- Mobile-first responsive design
 
 ## Deployment
 
