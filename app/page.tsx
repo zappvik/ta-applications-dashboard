@@ -1,5 +1,14 @@
-import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 
-export default function RootPage() {
-  redirect('/login');
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+
+export default async function RootPage() {
+  const session = await getServerSession(authOptions)
+
+  if (session) {
+    redirect('/dashboard')
+  }
+
+  redirect('/login')
 }
