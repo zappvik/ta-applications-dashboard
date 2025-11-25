@@ -64,6 +64,53 @@ const BATCH_MAPPING = [
   { label: 'Pre-Final Year (2023)', value: '23' },
 ]
 
+function ReadMoreText({
+  text,
+  maxLength = 260,
+  maxLines = 5,
+}: {
+  text: string | null
+  maxLength?: number
+  maxLines?: number
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  if (!text || text.trim() === '') {
+    return <span className="text-gray-400 italic">None provided</span>
+  }
+
+  const shouldTruncate = text.length > maxLength
+
+  return (
+    <div className="space-y-2">
+      <p
+        className="whitespace-pre-wrap break-words text-left"
+        style={
+          !isExpanded
+            ? {
+                display: '-webkit-box',
+                WebkitLineClamp: maxLines,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }
+            : undefined
+        }
+      >
+        {text}
+      </p>
+      {shouldTruncate && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded((prev) => !prev)}
+          className="text-xs text-blue-600 dark:text-blue-400 hover:underline focus:outline-none"
+        >
+          {isExpanded ? 'Read less' : 'Read more'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function ApplicationsTable({
   applications: propApplications,
   initialSelections: propInitialSelections,
@@ -634,13 +681,13 @@ export default function ApplicationsTable({
                               rowSpan={rowSpan}
                               className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[300px] text-center text-gray-700 dark:text-gray-300"
                             >
-                              {app.reason || <span className="text-gray-400 italic">None provided</span>}
+                              <ReadMoreText text={app.reason} />
                             </td>
                             <td
                               rowSpan={rowSpan}
                               className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[250px] text-center text-gray-700 dark:text-gray-300"
                             >
-                              {app.internship || <span className="text-gray-400 italic">None provided</span>}
+                              <ReadMoreText text={app.internship} />
                             </td>
                             <td
                               rowSpan={rowSpan}

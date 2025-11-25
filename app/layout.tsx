@@ -6,7 +6,7 @@ import Providers from './providers'
 import Watermark from '@/components/Watermark'
 
 export const metadata: Metadata = {
-  title: 'Winter TA Applications Dashboard',
+  title: 'TA Admin Portal',
   description: 'View your applications.',
   icons: {
     icon: [
