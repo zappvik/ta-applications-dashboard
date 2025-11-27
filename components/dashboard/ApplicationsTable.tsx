@@ -90,6 +90,7 @@ function ReadMoreText({
   onHeightChange?: (height: number | undefined) => void
 }) {
   const [uncontrolledExpanded, setUncontrolledExpanded] = useState(false)
+  const [needsTruncation, setNeedsTruncation] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLParagraphElement>(null)
   const isControlled = typeof controlledExpanded === 'boolean'
@@ -125,11 +126,36 @@ function ReadMoreText({
     }
   }, [isExpanded, text, onHeightChange])
 
+  // Check if content actually needs truncation by measuring rendered height
+  useLayoutEffect(() => {
+    if (!contentRef.current || !text) {
+      setNeedsTruncation(false)
+      return
+    }
+
+    const element = contentRef.current
+    
+    // Calculate the clamped height
+    const lineHeight = parseFloat(getComputedStyle(element).lineHeight) || 24
+    const clampedHeight = syncedClampHeight || (lineHeight * maxLines)
+    
+    // Create a temporary clone to measure full height without truncation
+    const clone = element.cloneNode(true) as HTMLElement
+    clone.style.cssText = 'position: absolute; visibility: hidden; height: auto; max-height: none; display: block; -webkit-line-clamp: none; -webkit-box-orient: unset; overflow: visible; width: ' + element.offsetWidth + 'px;'
+    clone.className = 'whitespace-pre-wrap break-words text-left'
+    document.body.appendChild(clone)
+    const fullHeight = clone.scrollHeight
+    document.body.removeChild(clone)
+    
+    // Check if content is actually truncated (with small tolerance for rounding)
+    const isTruncated = fullHeight > clampedHeight + 2
+    
+    setNeedsTruncation(isTruncated)
+  }, [text, maxLines, syncedClampHeight, isExpanded])
+
   if (!text || text.trim() === '') {
     return <span className="text-gray-400 italic">None provided</span>
   }
-
-  const shouldTruncate = text.length > maxLength
 
   return (
     <div className="space-y-2" ref={containerRef}>
@@ -154,7 +180,7 @@ function ReadMoreText({
       >
         {text}
       </p>
-      {shouldTruncate && (
+      {needsTruncation && (
         <button
           type="button"
           onClick={handleToggle}
