@@ -28,14 +28,23 @@ export default function ChangePasswordForm() {
 
 
 
-    if (newPass.length < 6) {
-
-      setMsg({ text: 'Password must be at least 6 characters', type: 'error' })
-
+    // Client-side validation (server also validates)
+    if (newPass.length < 8) {
+      setMsg({ text: 'Password must be at least 8 characters long', type: 'error' })
       setLoading(false)
-
       return
-
+    }
+    
+    if (!/[a-zA-Z]/.test(newPass) || !/[0-9]/.test(newPass)) {
+      setMsg({ text: 'Password must contain at least one letter and one number', type: 'error' })
+      setLoading(false)
+      return
+    }
+    
+    if (newPass.length > 128) {
+      setMsg({ text: 'Password is too long (maximum 128 characters)', type: 'error' })
+      setLoading(false)
+      return
     }
 
 

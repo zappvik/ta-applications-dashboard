@@ -3,7 +3,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic'
+// Enable caching - revalidate every 30 seconds
 export const revalidate = 30
 
 export async function GET() {
@@ -49,11 +49,16 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       applications: applications || [],
       selections: Array.from(mySelections),
       selectionData,
     })
+
+    // Add cache headers for authenticated users (private cache)
+    response.headers.set('Cache-Control', 'private, s-maxage=30, stale-while-revalidate=60')
+
+    return response
   } catch (error) {
     console.error('Error fetching applications:', error)
     return NextResponse.json({ error: 'Failed to fetch applications' }, { status: 500 })

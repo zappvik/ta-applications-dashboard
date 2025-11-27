@@ -6,9 +6,13 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 
 import { createClient } from '@supabase/supabase-js'
 
-
+// Validate NextAuth secret is set
+if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('NEXTAUTH_SECRET is required in production')
+}
 
 export const authOptions: AuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
 
   providers: [
 
@@ -28,9 +32,12 @@ export const authOptions: AuthOptions = {
 
         if (!credentials?.username || !credentials?.password) return null
 
+        // Validate username input (prevent injection)
+        const username = String(credentials.username).trim()
+        if (username.length === 0 || username.length > 100) return null
+        if (!/^[a-zA-Z0-9._-]+$/.test(username)) return null // Only alphanumeric, dots, underscores, hyphens
 
-
-        const email = `${credentials.username}@dashboard.local`
+        const email = `${username}@dashboard.local`
 
 
 

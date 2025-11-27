@@ -8,6 +8,7 @@ import {
   useEffect,
   useRef,
   useLayoutEffect,
+  memo,
 } from 'react'
 import { usePathname } from 'next/navigation'
 import { toggleSelection } from '@/app/actions/toggleSelection'
@@ -72,7 +73,7 @@ const BATCH_MAPPING = [
   { label: 'Pre-Final Year (2023)', value: '23' },
 ]
 
-function ReadMoreText({
+const ReadMoreText = memo(function ReadMoreText({
   text,
   maxLength = 260,
   maxLines = 5,
@@ -127,30 +128,45 @@ function ReadMoreText({
   }, [isExpanded, text, onHeightChange])
 
   // Check if content actually needs truncation by measuring rendered height
-  useLayoutEffect(() => {
+  // Defer this calculation to avoid blocking initial render
+  useEffect(() => {
     if (!contentRef.current || !text) {
       setNeedsTruncation(false)
       return
     }
 
-    const element = contentRef.current
-    
-    // Calculate the clamped height
-    const lineHeight = parseFloat(getComputedStyle(element).lineHeight) || 24
-    const clampedHeight = syncedClampHeight || (lineHeight * maxLines)
-    
-    // Create a temporary clone to measure full height without truncation
-    const clone = element.cloneNode(true) as HTMLElement
-    clone.style.cssText = 'position: absolute; visibility: hidden; height: auto; max-height: none; display: block; -webkit-line-clamp: none; -webkit-box-orient: unset; overflow: visible; width: ' + element.offsetWidth + 'px;'
-    clone.className = 'whitespace-pre-wrap break-words text-left'
-    document.body.appendChild(clone)
-    const fullHeight = clone.scrollHeight
-    document.body.removeChild(clone)
-    
-    // Check if content is actually truncated (with small tolerance for rounding)
-    const isTruncated = fullHeight > clampedHeight + 2
-    
-    setNeedsTruncation(isTruncated)
+    // Use requestIdleCallback or setTimeout to defer the measurement
+    const measureHeight = () => {
+      if (!contentRef.current) return
+      
+      const element = contentRef.current
+      
+      // Calculate the clamped height
+      const lineHeight = parseFloat(getComputedStyle(element).lineHeight) || 24
+      const clampedHeight = syncedClampHeight || (lineHeight * maxLines)
+      
+      // Create a temporary clone to measure full height without truncation
+      const clone = element.cloneNode(true) as HTMLElement
+      clone.style.cssText = 'position: absolute; visibility: hidden; height: auto; max-height: none; display: block; -webkit-line-clamp: none; -webkit-box-orient: unset; overflow: visible; width: ' + element.offsetWidth + 'px;'
+      clone.className = 'whitespace-pre-wrap break-words text-left'
+      document.body.appendChild(clone)
+      const fullHeight = clone.scrollHeight
+      document.body.removeChild(clone)
+      
+      // Check if content is actually truncated (with small tolerance for rounding)
+      const isTruncated = fullHeight > clampedHeight + 2
+      
+      setNeedsTruncation(isTruncated)
+    }
+
+    // Defer measurement to avoid blocking render
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(measureHeight, { timeout: 100 })
+      return () => cancelIdleCallback(id)
+    } else {
+      const timeoutId = setTimeout(measureHeight, 0)
+      return () => clearTimeout(timeoutId)
+    }
   }, [text, maxLines, syncedClampHeight, isExpanded])
 
   if (!text || text.trim() === '') {
@@ -191,7 +207,7 @@ function ReadMoreText({
       )}
     </div>
   )
-}
+})
 
 export default function ApplicationsTable({
   applications: propApplications,

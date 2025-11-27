@@ -1,22 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import ApplicationsTable from '@/components/dashboard/ApplicationsTable'
 import InstructionsBanner from '@/components/dashboard/InstructionsBanner'
 import { useApplications } from '@/lib/context/ApplicationsContext'
 
-export default function ApplicationsPage() {
+function ApplicationsContent() {
   const { applications, selections, isLoading, error, refresh } = useApplications()
-
-  if (isLoading && applications.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Loading applications...</p>
-        </div>
-      </div>
-    )
-  }
 
   if (error && applications.length === 0) {
     return (
@@ -47,5 +37,33 @@ export default function ApplicationsPage() {
         <ApplicationsTable />
       </div>
     </div>
+  )
+}
+
+export default function ApplicationsPage() {
+  const { isLoading, applications } = useApplications()
+
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading applications...</p>
+          </div>
+        </div>
+      }
+    >
+      {isLoading && applications.length === 0 ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Loading applications...</p>
+          </div>
+        </div>
+      ) : (
+        <ApplicationsContent />
+      )}
+    </Suspense>
   )
 }
