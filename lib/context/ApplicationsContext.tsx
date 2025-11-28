@@ -18,13 +18,6 @@ type SelectionData = {
   created_at: string
 }
 
-type CachedData = {
-  applications: Application[]
-  selections: string[]
-  selectionData: Record<string, SelectionData>
-  timestamp: number
-}
-
 type ApplicationsContextType = {
   applications: Application[]
   selections: Set<string>
@@ -38,53 +31,13 @@ type ApplicationsContextType = {
   shortlistedApplications: Application[]
 }
 
-const CACHE_KEY = 'applications_cache'
-const CACHE_DURATION = 30 * 1000
-
-function getCachedData(): CachedData | null {
-  if (typeof window === 'undefined') return null
-  
-  try {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (!cached) return null
-    
-    const data: CachedData = JSON.parse(cached)
-    const now = Date.now()
-    
-    if (now - data.timestamp < CACHE_DURATION) {
-      return data
-    }
-    
-    localStorage.removeItem(CACHE_KEY)
-    return null
-  } catch (error) {
-    console.error('Error reading cache:', error)
-    return null
-  }
-}
-
-function setCachedData(data: CachedData) {
-  if (typeof window === 'undefined') return
-  
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data))
-  } catch (error) {
-    console.error('Error writing cache:', error)
-  }
-}
-
 export const ApplicationsContext = createContext<ApplicationsContextType | undefined>(undefined)
 
 export function ApplicationsProvider({ children }: { children: ReactNode }) {
-  const cachedData = getCachedData()
-  const [applications, setApplications] = useState<Application[]>(cachedData?.applications || [])
-  const [selections, setSelections] = useState<Set<string>>(
-    cachedData ? new Set(cachedData.selections) : new Set()
-  )
-  const [selectionData, setSelectionData] = useState<Record<string, SelectionData>>(
-    cachedData?.selectionData || {}
-  )
-  const [isLoading, setIsLoading] = useState(!cachedData)
+  const [applications, setApplications] = useState<Application[]>([])
+  const [selections, setSelections] = useState<Set<string>>(new Set())
+  const [selectionData, setSelectionData] = useState<Record<string, SelectionData>>({})
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const totalCount = applications.length
@@ -125,21 +78,11 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
       setApplications(newApplications)
       setSelections(newSelections)
       setSelectionData(newSelectionData)
-      
-      setCachedData({
-        applications: newApplications,
-        selections: Array.from(newSelections),
-        selectionData: newSelectionData,
-        timestamp: Date.now(),
-      })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
       console.error('Error fetching applications:', err)
       
-      const currentCached = getCachedData()
-      if (!currentCached) {
-        setError(errorMessage)
-      }
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -150,8 +93,7 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const hasCachedData = !!cachedData
-    fetchApplications(!hasCachedData)
+    fetchApplications(true)
     
     const interval = setInterval(() => {
       fetchApplications(false)
