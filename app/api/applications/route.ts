@@ -3,7 +3,10 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-export const dynamic = 'force-dynamic'
+// Allow caching for better performance
+// Cache will be invalidated by revalidatePath in server actions
+// When client requests with cache: 'no-store', it will bypass cache and fetch fresh data
+export const revalidate = 30 // Revalidate every 30 seconds
 
 export async function GET() {
   try {

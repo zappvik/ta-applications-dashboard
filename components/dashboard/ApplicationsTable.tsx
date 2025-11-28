@@ -9,8 +9,9 @@ import {
   useRef,
   useLayoutEffect,
   memo,
+  useCallback,
 } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { toggleSelection } from '@/app/actions/toggleSelection'
 import DownloadCSVButton from '@/components/dashboard/DownloadCSVButton'
 import DownloadShortlistedCSVButton from '@/components/dashboard/DownloadShortlistedCSVButton'
@@ -94,8 +95,14 @@ const ReadMoreText = memo(function ReadMoreText({
   const [needsTruncation, setNeedsTruncation] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLParagraphElement>(null)
+  const onHeightChangeRef = useRef(onHeightChange)
   const isControlled = typeof controlledExpanded === 'boolean'
   const isExpanded = isControlled ? controlledExpanded : uncontrolledExpanded
+
+  // Keep the ref updated with the latest callback
+  useEffect(() => {
+    onHeightChangeRef.current = onHeightChange
+  }, [onHeightChange])
 
   const handleToggle = () => {
     const next = !isExpanded
@@ -121,11 +128,11 @@ const ReadMoreText = memo(function ReadMoreText({
 
   useLayoutEffect(() => {
     if (isExpanded && contentRef.current) {
-      onHeightChange?.(contentRef.current.scrollHeight)
+      onHeightChangeRef.current?.(contentRef.current.scrollHeight)
     } else if (!isExpanded) {
-      onHeightChange?.(undefined)
+      onHeightChangeRef.current?.(undefined)
     }
-  }, [isExpanded, text, onHeightChange])
+  }, [isExpanded, text])
 
   useEffect(() => {
     if (!contentRef.current || !text) {
@@ -237,6 +244,7 @@ export default function ApplicationsTable({
 }) {
   const context = useContext(ApplicationsContext)
   const pathname = usePathname()
+  const router = useRouter()
   
   const isShortlistedPage = pathname === '/dashboard/chosen'
   
@@ -288,18 +296,20 @@ export default function ApplicationsTable({
     })
   }
 
-  const handleHeightChange = (id: string, column: 'reason' | 'internship') => (height?: number) => {
-    setRowSyncState((prev) => {
-      const current = prev[id]
-      if (!current || current.controller !== column) {
-        return prev
-      }
-    if (current.height === height) {
-      return prev
+  const handleHeightChange = useCallback((id: string, column: 'reason' | 'internship') => {
+    return (height?: number) => {
+      setRowSyncState((prev) => {
+        const current = prev[id]
+        if (!current || current.controller !== column) {
+          return prev
+        }
+        if (current.height === height) {
+          return prev
+        }
+        return { ...prev, [id]: { ...current, height } }
+      })
     }
-    return { ...prev, [id]: { ...current, height } }
-    })
-  }
+  }, [])
 
   const [optimisticSelections, addOptimisticSelection] = useOptimistic(
     initialSelections,
@@ -312,7 +322,19 @@ export default function ApplicationsTable({
   )
 
   const [localSelectionTimestamps, setLocalSelectionTimestamps] = useState<Record<string, number>>({})
+  const [loadingSelections, setLoadingSelections] = useState<Set<string>>(new Set())
   const subjectDropdownRef = useRef<HTMLDivElement>(null)
+  const pendingOperationsRef = useRef<Set<string>>(new Set())
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Sync optimistic state with context when it updates (but not during pending operations)
+  useEffect(() => {
+    // Only sync if there are no pending operations to avoid conflicts
+    if (pendingOperationsRef.current.size === 0) {
+      // The useOptimistic hook will automatically use the new initialSelections
+      // when there are no pending updates, so we don't need to manually sync
+    }
+  }, [initialSelections])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -346,6 +368,11 @@ export default function ApplicationsTable({
     const compositeKey = `${id}::${subject}`
     const isAdding = !optimisticSelections.has(compositeKey)
     
+    // Track this operation as pending and show loading state
+    pendingOperationsRef.current.add(compositeKey)
+    setLoadingSelections((prev) => new Set(prev).add(compositeKey))
+    
+    // Optimistic update - immediate UI feedback
     startTransition(() => {
       addOptimisticSelection(compositeKey)
       if (isAdding) {
@@ -361,11 +388,73 @@ export default function ApplicationsTable({
         })
       }
     })
-    const result = await toggleSelection(id, subject)
-    if (result?.error) {
-      alert(result.error)
-    } else if (result?.success && context) {
-      context.refresh()
+    
+    try {
+      const result = await toggleSelection(id, subject)
+      
+      if (result?.error) {
+        // Remove loading state on error
+        pendingOperationsRef.current.delete(compositeKey)
+        setLoadingSelections((prev) => {
+          const next = new Set(prev)
+          next.delete(compositeKey)
+          return next
+        })
+        alert(result.error)
+        // Revert optimistic update on error
+        startTransition(() => {
+          addOptimisticSelection(compositeKey)
+        })
+      } else if (result?.success) {
+        // Batch refreshes - clear any pending refresh and schedule a new one
+        // This prevents multiple refreshes when clicking multiple stars quickly
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current)
+        }
+        
+        refreshTimeoutRef.current = setTimeout(async () => {
+          // After shortlisting, we need fresh data from API (not cache)
+          // because the cache doesn't have the updated shortlist yet
+          // Keep spinner visible until refresh completes
+          if (context) {
+            try {
+              await context.refresh(false)
+            } catch (err) {
+              console.error('Error refreshing context:', err)
+            } finally {
+              // Remove loading state only after refresh completes
+              pendingOperationsRef.current.delete(compositeKey)
+              setLoadingSelections((prev) => {
+                const next = new Set(prev)
+                next.delete(compositeKey)
+                return next
+              })
+            }
+          } else {
+            // If no context, remove loading state immediately
+            pendingOperationsRef.current.delete(compositeKey)
+            setLoadingSelections((prev) => {
+              const next = new Set(prev)
+              next.delete(compositeKey)
+              return next
+            })
+          }
+          refreshTimeoutRef.current = null
+        }, 500)
+      }
+    } catch (error) {
+      console.error('Error toggling selection:', error)
+      // Remove from pending operations and loading state
+      pendingOperationsRef.current.delete(compositeKey)
+      setLoadingSelections((prev) => {
+        const next = new Set(prev)
+        next.delete(compositeKey)
+        return next
+      })
+      // Revert optimistic update on error
+      startTransition(() => {
+        addOptimisticSelection(compositeKey)
+      })
     }
   }
 
@@ -820,10 +909,18 @@ export default function ApplicationsTable({
                           <div className="flex items-center justify-start gap-2">
                             <button
                               onClick={() => handleToggle(app.id, name)}
-                              className={`text-lg leading-none focus:outline-none transition-transform active:scale-90 ${isSelected ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-300 hover:text-gray-400'}`}
-                              title={isSelected ? 'Unselect' : 'Select'}
+                              disabled={loadingSelections.has(compositeKey)}
+                              className={`text-lg leading-none focus:outline-none transition-transform active:scale-90 disabled:opacity-50 disabled:cursor-wait ${isSelected ? 'text-yellow-400 drop-shadow-sm' : 'text-gray-300 hover:text-gray-400'}`}
+                              title={loadingSelections.has(compositeKey) ? 'Saving...' : isSelected ? 'Unselect' : 'Select'}
                             >
-                              ★
+                              {loadingSelections.has(compositeKey) ? (
+                                <svg className="animate-spin h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                              ) : (
+                                '★'
+                              )}
                             </button>
                             <span className="flex-1 text-center">{name}</span>
                           </div>

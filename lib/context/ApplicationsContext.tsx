@@ -54,15 +54,22 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
     chosenApplicationIds.has(app.id)
   )
 
-  const fetchApplications = async (showLoading = false) => {
+  const fetchApplications = async (showLoading = false, useCache = false) => {
     try {
       if (showLoading) {
         setIsLoading(true)
       }
       setError(null)
       
+      // When useCache is true (page navigation), use cached data
+      // When useCache is false (after shortlisting), fetch fresh data from API
+      const cacheOptions = useCache 
+        ? { cache: 'force-cache' as RequestCache } // Use cache for navigation
+        : { cache: 'no-store' as RequestCache } // Fetch fresh data after shortlisting
+      
       const response = await fetch('/api/applications', {
-        cache: 'default',
+        ...cacheOptions,
+        next: useCache ? undefined : { revalidate: 0 }, // Don't cache fresh fetches
       })
       
       if (!response.ok) {
@@ -88,15 +95,19 @@ export function ApplicationsProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const refresh = async () => {
-    await fetchApplications(true)
+  const refresh = async (useCache = false) => {
+    // Default to false (fetch fresh) unless explicitly told to use cache
+    // This ensures shortlisting always gets fresh data
+    await fetchApplications(true, useCache)
   }
 
   useEffect(() => {
-    fetchApplications(true)
+    // Initial load - use cache if available for faster load
+    fetchApplications(true, true)
     
+    // Periodic refresh - use cache to avoid unnecessary API calls
     const interval = setInterval(() => {
-      fetchApplications(false)
+      fetchApplications(false, true)
     }, 1800000)
 
     return () => clearInterval(interval)
