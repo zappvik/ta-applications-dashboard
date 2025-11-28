@@ -14,7 +14,7 @@ function ApplicationsContent() {
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400 mb-2">Error: {error}</p>
           <button
-            onClick={refresh}
+            onClick={() => refresh()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Retry

@@ -24,7 +24,7 @@ type ApplicationsContextType = {
   selectionData: Record<string, SelectionData>
   isLoading: boolean
   error: string | null
-  refresh: () => Promise<void>
+  refresh: (useCache?: boolean) => Promise<void>
   totalCount: number
   recentApplications: Application[]
   chosenCount: number
