@@ -15,6 +15,10 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
     apple: '/favicon.svg',
   },
+  other: {
+    // Preconnect to font CDN for faster font loading
+    'preconnect': 'https://fonts.cdnfonts.com',
+  },
 }
 
 export default function RootLayout({
@@ -24,6 +28,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnect to font CDN for faster font loading - establishes early connection */}
+        <link rel="preconnect" href="https://fonts.cdnfonts.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.cdnfonts.com" />
+      </head>
       <body className="antialiased bg-white text-gray-900 dark:bg-[#020617] dark:text-white transition-colors duration-200 ease-in-out relative overflow-x-hidden">
         <Providers>
           <div className="relative z-10 min-h-screen">

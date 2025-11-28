@@ -1,3 +1,4 @@
+/* Font import - font-display: swap is handled via link tag in layout.tsx */
 @import url('https://fonts.cdnfonts.com/css/satoshi');
 
 @tailwind base;
