@@ -637,7 +637,7 @@ export default function ApplicationsTable({
         />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-start pb-8">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col xl:flex-row gap-4 justify-between items-start pb-8 overflow-x-auto">
         <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto items-start">
           <div className="w-full md:w-48 relative">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -714,11 +714,11 @@ export default function ApplicationsTable({
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
               Filter by Course
             </label>
-            <div ref={subjectDropdownRef} className="relative inline-block w-full md:w-auto">
+            <div ref={subjectDropdownRef} className="relative inline-block w-full md:w-auto max-w-full">
               <button
                 type="button"
                 onClick={() => setIsSubjectSelectOpen(!isSubjectSelectOpen)}
-                className="flex items-center justify-between w-full min-w-[320px] px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 text-left"
+                className="flex items-center justify-between w-full min-w-[200px] md:min-w-[280px] max-w-full px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500 text-left overflow-hidden"
               >
                 <span className={selectedSubjects.length > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}>
                   {selectedSubjects.length > 0 ? selectedSubjects.join(', ') : 'Filter by course'}
@@ -736,7 +736,7 @@ export default function ApplicationsTable({
                 </div>
               </button>
               {isSubjectSelectOpen && (
-                <div className="absolute z-50 w-full min-w-[320px] mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-50 w-full min-w-[200px] md:min-w-[280px] max-w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
                   {availableSubjects.map((subject) => (
                     <button
                       key={subject}
@@ -763,8 +763,8 @@ export default function ApplicationsTable({
           </div>
         </div>
 
-        <div className="w-full md:w-auto flex items-end gap-3">
-          <div className="w-full md:w-48 relative">
+        <div className="w-full xl:w-auto flex flex-col sm:flex-row gap-4 items-end flex-shrink-0 min-w-0">
+          <div className="w-full sm:w-48 relative flex-shrink-0">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
               Sort By
             </label>
@@ -800,7 +800,7 @@ export default function ApplicationsTable({
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="w-full sm:w-auto flex-shrink-0 min-w-0 max-w-full">
             {isShortlistedPage ? (
               <DownloadShortlistedCSVButton 
                 applications={sortedApplications}
