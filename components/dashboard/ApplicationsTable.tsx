@@ -849,13 +849,12 @@ export default function ApplicationsTable({
             <tr>
               <th className="px-4 py-3 min-w-[150px] text-center align-middle">Student Name</th>
               <th className="px-4 py-3 min-w/[100px] text-center align-middle">Roll No</th>
-              <th className="px-4 py-3 min-w/[190px] text-center align-middle">Email</th>
+              <th className="px-4 py-3 min-w-[120px] text-center align-middle">Email</th>
               <th className="px-4 py-3 min-w/[210px] text-center align-middle">Subject</th>
               <th className="px-4 py-3 w-16 text-center align-middle">Pref</th>
               <th className="px-4 py-3 w-20 text-center align-middle">Grade</th>
-              <th className="px-4 py-3 min-w/[300px] text-center align-middle">Reason</th>
-              <th className="px-4 py-3 min-w/[300px] text-center align-middle">Internship</th>
-              <th className="px-4 py-3 min-w/[100px] text-center align-middle">Submitted</th>
+              <th className="px-4 py-3 min-w-[400px] text-center align-middle">Reason</th>
+              <th className="px-4 py-3 min-w-[400px] text-center align-middle">Internship</th>
             </tr>
           </thead>
           {sortedApplications.length > 0 ? (
@@ -898,7 +897,7 @@ export default function ApplicationsTable({
                             </td>
                             <td
                               rowSpan={rowSpan}
-                              className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle break-words max-w-[190px] text-center"
+                              className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle break-words max-w-[120px] text-center"
                             >
                               {app.email}
                             </td>
@@ -938,7 +937,7 @@ export default function ApplicationsTable({
                           <>
                             <td
                               rowSpan={rowSpan}
-                              className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[300px] text-center text-gray-700 dark:text-gray-300"
+                              className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[400px] text-center text-gray-700 dark:text-gray-300"
                             >
                               <ReadMoreText
                                 text={app.reason}
@@ -954,7 +953,7 @@ export default function ApplicationsTable({
                             </td>
                             <td
                               rowSpan={rowSpan}
-                              className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[300px] text-center text-gray-700 dark:text-gray-300"
+                              className="px-4 py-5 border-r border-gray-200 dark:border-gray-700 align-middle text-sm leading-6 whitespace-pre-wrap break-words max-w-[400px] text-center text-gray-700 dark:text-gray-300"
                             >
                               <ReadMoreText
                                 text={app.internship}
@@ -968,12 +967,6 @@ export default function ApplicationsTable({
                                 onHeightChange={handleHeightChange(app.id, 'internship')}
                               />
                             </td>
-                            <td
-                              rowSpan={rowSpan}
-                              className="px-4 py-5 align-middle text-xs whitespace-nowrap text-gray-500 text-center"
-                            >
-                              {new Date(app.created_at).toLocaleDateString()}
-                            </td>
                           </>
                         )}
                       </tr>
@@ -985,7 +978,7 @@ export default function ApplicationsTable({
           ) : (
             <tbody>
               <tr>
-                <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                   No applications found matching your filters.
                 </td>
               </tr>
