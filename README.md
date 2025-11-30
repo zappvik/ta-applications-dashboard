@@ -1,6 +1,6 @@
 # TA Applications Dashboard
 
-The TA Applications Dashboard is the internal portal used by the School of Computing to collect, review, and shortlist Teaching Assistant applicants. It provides authenticated faculty members with a secure, consistent view of every submission, subject preference, and supporting detail.
+TA Admin portal is the dashboard used by the Amrita School of Computing to collect, review, and shortlist Teaching Assistant applicants. It provides authenticated faculty members with a secure, consistent view of every submission, subject preference, and supporting detail.
 
 ## Overview
 
@@ -37,8 +37,8 @@ The TA Applications Dashboard is the internal portal used by the School of Compu
 
 1. Clone the repository and install dependencies:
    ```bash
-   git clone https://github.com/zappvik/ta-applications-dashboard.git
-   cd ta-applications-dashboard
+   git clone https://github.com/zappvik/ta-admin-portal.git
+   cd ta-admin-portal
    npm install
    ```
 2. Create `.env.local` (never commit this file):
